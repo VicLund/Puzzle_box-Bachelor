@@ -12,7 +12,6 @@
 
 void setup() {
   printf("Hello, World!");
-  //Hello how are you?
 }
 
 void loop() {

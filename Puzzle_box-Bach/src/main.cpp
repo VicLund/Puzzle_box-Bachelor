@@ -14,8 +14,7 @@ void setup() {
   printf("Hello, World!");
   //Hello again!
 }
-//hello everyone
-//hello again
+
 void loop() {
   // put your main code here, to run repeatedly:
 }

@@ -4,7 +4,7 @@
 
 #include <DFRobotDFPlayerMini.h>
 #include <Adafruit_LEDBackpack.h>
-#include <DFRobot_I2CMultiplexer.h>
+//#include <DFRobot_I2CMultiplexer.h>
 #include <Adafruit_Keypad.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_seesaw.h>
@@ -12,6 +12,7 @@
 
 void setup() {
   printf("Hello, World!");
+  //Hello how are you?
 }
 
 void loop() {

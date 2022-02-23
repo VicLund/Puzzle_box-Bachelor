@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
-
 #include <DFRobotDFPlayerMini.h>
 #include <Adafruit_LEDBackpack.h>
 //#include <DFRobot_I2CMultiplexer.h>
@@ -15,7 +14,8 @@ const int RedButtonPin = 1;     // Red ToggleSwitch pin
 const int GreenButtonPin = 2;   // Green ToggleSwitch pin
 const int OrangeButtonPin = 3;  // Orange ToggleSwitch pin
 const int WhiteButtonPin = 4;   // White ToggleSwitch pin
-    
+
+const int ButtonPins[5] = {0, 1, 2, 3, 4};
 
 // variables will change:
 int BlueButtonState = LOW;         // variable for reading the toggle switch status
@@ -25,167 +25,146 @@ int OrangeButtonState = LOW;       // variable for reading the toggle switch sta
 int WhiteButtonState = LOW;        // variable for reading the toggle switch status
 
 //boolean buttonState = LOW;
-boolean BluePreviousState = LOW;    //Saves the previous state of the toggle switch
-boolean RedPreviousState = LOW;     //Saves the previous state of the toggle switch
-boolean GreenPreviousState = LOW;   //Saves the previous state of the toggle switch
-boolean OrangePreviousState = LOW;  //Saves the previous state of the toggle switch
-boolean WhitePreviousState = LOW;   //Saves the previous state of the toggle switch 
+int BluePreviousState = LOW;    //Saves the previous state of the toggle switch
+int RedPreviousState = LOW;     //Saves the previous state of the toggle switch
+int GreenPreviousState = LOW;   //Saves the previous state of the toggle switch
+int OrangePreviousState = LOW;  //Saves the previous state of the toggle switch
+int WhitePreviousState = LOW;   //Saves the previous state of the toggle switch 
 
+unsigned long DebounceDelay = 50;
+unsigned long DebounceTimer = 0;
 
+//Switchen er NO, så, når den fysisk er switched ON så kobles pinnen til jord, og vi får ingen lys i LED. Derfor er det OFF state (siden LED da lyser) som skal registreres i koden, og brukes til å registrere at den er "PÅ", mens signalet egentlig er lavt
 
-
-
-
-boolean debounceBlue(boolean state)
+void DebounceBlue()
 {
-  boolean stateNow = digitalRead(BlueButtonPin);
-  if(state!=stateNow)
+  int BlueStateNow = digitalRead(BlueButtonPin);
+  if(BlueStateNow != BluePreviousState)
   {
-    delay(50);
-    stateNow = digitalRead(BlueButtonPin);
+    DebounceTimer = millis();
   }
-  return stateNow;
-  
+  if ((millis() - DebounceTimer) > DebounceDelay)
+  {
+    if(BlueStateNow != BlueButtonState)
+    {
+      BlueButtonState = BlueStateNow;
+      if (BlueButtonState == LOW)
+        {
+          Serial.println("Blue switch OFF");
+        }
+      else {Serial.println("Blue switch ON");}
+    }
+  }
+  BluePreviousState = BlueStateNow; 
 }
 
-boolean debounceRed(boolean state)
+void DebounceRed()
 {
-  boolean stateNow = digitalRead(RedButtonPin);
-  if(state!=stateNow)
+  int RedStateNow = digitalRead(RedButtonPin);
+  if(RedStateNow != RedPreviousState)
   {
-    delay(50);
-    stateNow = digitalRead(RedButtonPin);
+    DebounceTimer = millis();
   }
-  return stateNow;
-  
+  if ((millis() - DebounceTimer) > DebounceDelay)
+  {
+    if(RedStateNow != RedButtonState)
+    {
+      RedButtonState = RedStateNow;
+      if (RedButtonState == LOW)
+        {
+          Serial.println("Red switch OFF");
+        }
+      else {Serial.println("Red switch ON");}
+    }
+  }
+  RedPreviousState = RedStateNow; 
 }
 
-boolean debounceGreen(boolean state)
+void DebounceGreen()
 {
-  boolean stateNow = digitalRead(GreenButtonPin);
-  if(state!=stateNow)
+  int GreenStateNow = digitalRead(GreenButtonPin);
+  if(GreenStateNow != GreenPreviousState)
   {
-    delay(50);
-    stateNow = digitalRead(GreenButtonPin);
+    DebounceTimer = millis();
   }
-  return stateNow;
-  
+  if ((millis() - DebounceTimer) > DebounceDelay)
+  {
+    if(GreenStateNow != GreenButtonState)
+    {
+      GreenButtonState = GreenStateNow;
+      if (GreenButtonState == LOW)
+        {
+          Serial.println("Green switch OFF");
+        }
+      else {Serial.println("Green switch ON");}
+    }
+  }
+  GreenPreviousState = GreenStateNow; 
 }
 
-boolean debounceOrange(boolean state)
+void DebounceOrange()
 {
-  boolean stateNow = digitalRead(OrangeButtonPin);
-  if(state!=stateNow)
+  int OrangeStateNow = digitalRead(OrangeButtonPin);
+  if(OrangeStateNow != OrangePreviousState)
   {
-    delay(50);
-    stateNow = digitalRead(OrangeButtonPin);
+    DebounceTimer = millis();
   }
-  return stateNow;
-  
+  if ((millis() - DebounceTimer) > DebounceDelay)
+  {
+    if(OrangeStateNow != OrangeButtonState)
+    {
+      OrangeButtonState = OrangeStateNow;
+      if (OrangeButtonState == LOW)
+        {
+          Serial.println("Orange switch OFF");
+        }
+      else {Serial.println("Orange switch ON");}
+    }
+  }
+  OrangePreviousState = OrangeStateNow; 
 }
 
-boolean debounceWhite(boolean state)
+void DebounceWhite()
 {
-  boolean stateNow = digitalRead(WhiteButtonPin);
-  if(state!=stateNow)
+  int WhiteStateNow = digitalRead(WhiteButtonPin);
+  if(WhiteStateNow != WhitePreviousState)
   {
-    delay(50);
-    stateNow = digitalRead(WhiteButtonPin);
+    DebounceTimer = millis();
   }
-  return stateNow;
-  
+  if ((millis() - DebounceTimer) > DebounceDelay)
+  {
+    if(WhiteStateNow != WhiteButtonState)
+    {
+      WhiteButtonState = WhiteStateNow;
+      if (WhiteButtonState == LOW)
+        {
+          Serial.println("White switch OFF");   //Switchen er NO, og når den er switchen ON så kobles den til jord, så vi får ingen lys i LED. Derfor er det HIGH state (siden LED da lyser) som skal registreres i koden, og brukes til å registrere at den er "PÅ", mens signalet egentlig er lavt
+        }
+      else {Serial.println("White switch ON");}
+    }
+  }
+  WhitePreviousState = WhiteStateNow; 
 }
-
-
-
-
-
 
 
 void setup() {
-  pinMode(BlueButtonPin, INPUT);
-  pinMode(RedButtonPin, INPUT);
-  pinMode(GreenButtonPin, INPUT);
-  pinMode(OrangeButtonPin, INPUT);
-  pinMode(WhiteButtonPin, INPUT);
   Serial.begin(9600);
+  pinMode(BlueButtonPin, INPUT_PULLUP);
+  pinMode(RedButtonPin, INPUT_PULLUP);
+  pinMode(GreenButtonPin, INPUT_PULLUP);
+  pinMode(OrangeButtonPin, INPUT_PULLUP);
+  pinMode(WhiteButtonPin, INPUT_PULLUP);
 }
 
-void loop() {
+void loop() 
+{
+DebounceBlue();
+DebounceRed();
+DebounceGreen();
+DebounceOrange();
+DebounceWhite();
 
-
-  BlueButtonState = digitalRead(BlueButtonPin);
-  RedButtonState = digitalRead(BlueButtonPin);
-  GreenButtonState = digitalRead(BlueButtonPin);
-  OrangeButtonState = digitalRead(BlueButtonPin);
-  WhiteButtonState = digitalRead(BlueButtonPin);
-
-  //--------------------------------------------------------------------//
-  
-  if(debounceBlue(BlueButtonState) == HIGH && BluePreviousState == LOW)
-  {
-    Serial.println("Blue HIGH");
-    BluePreviousState = BlueButtonState;
-  }
-  //if(debounceButton(BlueButtonState) == LOW && BluePreviousState == HIGH)
-  else {Serial.println("Blue LOW");BluePreviousState = BlueButtonState;}
-
-    //--------------------------------------------------------------------//
-  
-  if(debounceRed(RedButtonState) == HIGH && RedPreviousState == LOW)
-  {
-    Serial.println("Red HIGH");
-    RedPreviousState = RedButtonState;
-  }
-  //if(debounceButton(BlueButtonState) == LOW && BluePreviousState == HIGH)
-  else 
-    {
-    Serial.println("Red LOW");
-    RedPreviousState = RedButtonState;
-    }
-
-    //--------------------------------------------------------------------//
-  
-  if(debounceGreen(GreenButtonState) == HIGH && GreenPreviousState == LOW)
-  {
-    Serial.println("Green HIGH");
-    GreenPreviousState = GreenButtonState;
-  }
-  //if(debounceButton(BlueButtonState) == LOW && BluePreviousState == HIGH)
-  else 
-    {
-    Serial.println("Green LOW");
-    GreenPreviousState = GreenButtonState;
-    }
-
-     //--------------------------------------------------------------------//
-  
-  if(debounceOrange(OrangeButtonState) == HIGH && OrangePreviousState == LOW)
-  {
-    Serial.println("Orange HIGH");
-    OrangePreviousState = OrangeButtonState;
-  }
-  //if(debounceButton(BlueButtonState) == LOW && BluePreviousState == HIGH)
-  else 
-    {
-    Serial.println("Orange LOW");
-    OrangePreviousState = OrangeButtonState;
-    }
-
-      //--------------------------------------------------------------------//
-  
-  if(debounceWhite(WhiteButtonState) == HIGH && WhitePreviousState == LOW)
-  {
-    Serial.println("White HIGH");
-    WhitePreviousState = WhiteButtonState;
-  }
-  //if(debounceButton(BlueButtonState) == LOW && BluePreviousState == HIGH)
-  else 
-    {
-    Serial.println("White LOW");
-    WhitePreviousState = WhiteButtonState;
-    }
-
-  delay(1000);
 }
+
+
 

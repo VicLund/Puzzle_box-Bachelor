@@ -217,19 +217,25 @@ void loop()
   for (uint16_t counterA = 3, counterB = 0, counterC = 0, counterD = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--) 
   {
 
-    if (Allow_Start == 0)
+  if (Allow_Start == 0)
     {
       Serial.println("You ran out of time, restart the game to try again");
       matrix.print("DONE");
       matrix.writeDisplay();
       delay(200000);
     }
-
-  if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 1 && Progress[4] == 1) && (MyRegister[0] == 1 && MyRegister[1] == 1 && MyRegister[2] == 1 && MyRegister[3] == 1 && MyRegister[4] == 1))
+   for(int p = 0; p < 5, p++)
+   {
+     if((Progress[p] == MyRegister[p]) && Progress[p] == 1)
      {
+       //Turn on respective colour on indicator led strip
+     }
+   }
+   if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 1 && Progress[4] == 1) && (MyRegister[0] == 1 && MyRegister[1] == 1 && MyRegister[2] == 1 && MyRegister[3] == 1 && MyRegister[4] == 1))
+    {
        Serial.println("Congratulations, you beat the game!");
        matrix.print("DONE");
-      }
+    }
 
       matrix.writeDigitNum(0, (counterA));
       matrix.writeDigitNum(1, (counterB));

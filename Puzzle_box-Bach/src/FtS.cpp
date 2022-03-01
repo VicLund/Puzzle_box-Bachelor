@@ -10,17 +10,22 @@
 #include <Adafruit_SPIDevice.h>
 #include <Adafruit_I2CDevice.h>
 
+#define LED_COUNT  4            // How many NeoPixels are attached to the Arduino?
+#define BRIGHTNESS 50           // NeoPixel brightness, 0 (min) to 255 (max)
+
 const int BlueButtonPin = 0;    // Blue ToggleSwitch pin
 const int RedButtonPin = 1;     // Red ToggleSwitch pin
 const int GreenButtonPin = 2;   // Green ToggleSwitch pin
 const int OrangeButtonPin = 3;  // Orange ToggleSwitch pin
 const int WhiteButtonPin = 4;   // White ToggleSwitch pin
+const int LedStripPin = A1;     // Data in Pin for the Led Strip indicator
 int Allow_Start = 1;            // Determines if the game can be started (start button cant be used as a reset after the game has started)
 
 int MyRegister[5] = {0};        // Saves the states of toggle switches in an array
 int Progress[5] = {0};          // Saves the progress in an array
 int SwitchPrevious[5] = {0};    // Savess the previous state of the toggle switches for the Switch-Case
 const int UnlockingSequence[5] = {8, 7, 6, 5, 4};  // This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
+const unsigned long color[5] = {0x0000FF, 0xFF0000, 0x00FF00, 0xdF8904, 0xFFFFFF};
 
 // variables will change:
 int BlueButtonState = LOW;         // variable for reading the toggle switch status
@@ -52,8 +57,28 @@ unsigned long PassDebounceDelay = 50;
 Adafruit_7segment matrix = Adafruit_7segment();
 boolean drawDots = true;
 
-//Adafruit_NeoPixel pixel = Adafruit_NeoPixel(1, NEOPIN, NEO_RGB + NEO_KHZ800);
-//Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
+Adafruit_NeoPixel strip(LED_COUNT, LedStripPin, NEO_RGBW + NEO_KHZ800);   // Declare our NeoPixel strip object (NEO_RGBW should possibly be changed to NEO_GRBW to get the right colors)
+// Argument 1 = Number of pixels in NeoPixel strip
+// Argument 2 = Arduino pin number (most are valid)
+// Argument 3 = Pixel type flags, add together as needed:
+
+void LedStrip()
+{
+  for(int p = 0; p < strip.numPixels(); p++)
+   {
+     if((Progress[p] == MyRegister[p]) && MyRegister[p] == 1)
+      {
+        matrix.println("LedStrip");
+        strip.setPixelColor(p, color[p]); 
+        strip.show();
+      }
+     if (MyRegister[p] == 0)
+      {
+        strip.setPixelColor(p, 0);
+        strip.show();
+      } 
+    }
+}
 
 void GameProgress()
 {
@@ -210,6 +235,9 @@ pinMode(RedButtonPin, INPUT_PULLUP);
 pinMode(GreenButtonPin, INPUT_PULLUP);
 pinMode(OrangeButtonPin, INPUT_PULLUP);
 pinMode(WhiteButtonPin, INPUT_PULLUP);
+strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
+strip.show();            // Turn OFF all pixels ASAP
+strip.setBrightness(BRIGHTNESS);
 }
 
 void loop() 
@@ -224,26 +252,24 @@ void loop()
       matrix.writeDisplay();
       delay(200000);
     }
-   for(int p = 0; p < 5, p++)
-   {
-     if((Progress[p] == MyRegister[p]) && Progress[p] == 1)
-     {
-       //Turn on respective colour on indicator led strip
-     }
-   }
+
+
+  LedStrip();
+
    if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 1 && Progress[4] == 1) && (MyRegister[0] == 1 && MyRegister[1] == 1 && MyRegister[2] == 1 && MyRegister[3] == 1 && MyRegister[4] == 1))
     {
        Serial.println("Congratulations, you beat the game!");
        matrix.print("DONE");
     }
 
-      matrix.writeDigitNum(0, (counterA));
-      matrix.writeDigitNum(1, (counterB));
-      matrix.drawColon(drawDots);
-      matrix.writeDigitNum(3, (counterC));
-      matrix.writeDigitNum(4, (counterD));
-      matrix.writeDisplay();
-      LoopTimer = millis();
+
+  matrix.writeDigitNum(0, (counterA));
+  matrix.writeDigitNum(1, (counterB));
+  matrix.drawColon(drawDots);
+  matrix.writeDigitNum(3, (counterC));
+  matrix.writeDigitNum(4, (counterD));
+  matrix.writeDisplay();
+  LoopTimer = millis();
   
     while ((millis() - LoopTimer) < LoopDelay)
     { 

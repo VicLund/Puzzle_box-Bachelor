@@ -20,7 +20,7 @@ int Allow_Start = 1;            // Determines if the game can be started (start 
 int MyRegister[5] = {0};        // Saves the states of toggle switches in an array
 int Progress[5] = {0};          // Saves the progress in an array
 int SwitchPrevious[5] = {0};    // Savess the previous state of the toggle switches for the Switch-Case
-const int UnlockingSequence[5] = {8, 7, 6, 5, 4};  // This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is the blue toggle switch etc..
+const int UnlockingSequence[5] = {8, 7, 6, 5, 4};  // This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
 
 // variables will change:
 int BlueButtonState = LOW;         // variable for reading the toggle switch status
@@ -36,7 +36,7 @@ int OrangeStateNow = 0;
 int WhiteStateNow = 0;
 
 //boolean buttonState = LOW;
-int BluePreviousState = LOW;    //Saves the previous state of the toggle switch
+int BluePreviousState = LOW;    //Saves the previous state of the toggle switch 
 int RedPreviousState = LOW;     //Saves the previous state of the toggle switch
 int GreenPreviousState = LOW;   //Saves the previous state of the toggle switch
 int OrangePreviousState = LOW;  //Saves the previous state of the toggle switch
@@ -288,7 +288,7 @@ void loop()
            {
               AccelerateTimer();
               SwitchPrevious[c] = 1;
-              Progress[i] = 0;
+              memset(Progress, 0, 5);
               break;
            }
           if ((counterA == UnlockingSequence[i] || counterB == UnlockingSequence[i] || counterC == UnlockingSequence[i] || counterD == UnlockingSequence[i]) && (SwitchPrevious[c] != MyRegister[i]) && MyRegister[i] == 1)

@@ -13,51 +13,53 @@
 #define LED_COUNT  4            // How many NeoPixels are attached to the Arduino?
 #define BRIGHTNESS 50           // NeoPixel brightness, 0 (min) to 255 (max)
 
-const int BlueButtonPin = 0;    // Blue ToggleSwitch pin
-const int RedButtonPin = 1;     // Red ToggleSwitch pin
-const int GreenButtonPin = 2;   // Green ToggleSwitch pin
-const int OrangeButtonPin = 3;  // Orange ToggleSwitch pin
-const int WhiteButtonPin = 4;   // White ToggleSwitch pin
-const int LedStripPin = A1;     // Data in Pin for the Led Strip indicator
-int Allow_Start = 1;            // Determines if the game can be started (start button cant be used as a reset after the game has started)
+const int           BlueButtonPin           = 0;                                 // Blue ToggleSwitch pin
+const int           RedButtonPin            = 1;                                 // Red ToggleSwitch pin
+const int           GreenButtonPin          = 2;                                 // Green ToggleSwitch pin
+const int           OrangeButtonPin         = 3;                                 // Orange ToggleSwitch pin
+const int           WhiteButtonPin          = 4;                                 // White ToggleSwitch pin
+const int           LedStripPin             = A1;                                // Data in Pin for the Led Strip indicator
+const int           UnlockingSequence[5]    = {8, 7, 6, 5, 4};                   // This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
 
-int MyRegister[5] = {0};        // Saves the states of toggle switches in an array
-int Progress[5] = {0};          // Saves the progress in an array
-int SwitchPrevious[5] = {0};    // Savess the previous state of the toggle switches for the Switch-Case
-const int UnlockingSequence[5] = {8, 7, 6, 5, 4};  // This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
-const unsigned long color[5] = {0x0000FF, 0xFF0000, 0x00FF00, 0xdF8904, 0xFFFFFF};
+int                 Allow_Start             = 1;                                 // Determines if the game can be started (start button cant be used as a reset after the game has started)
+int                 MyRegister[5]           = {0};                               // Saves the states of toggle switches in an array
+int                 Progress[5]             = {0};                               // Saves the progress in an array
+int                 SwitchPrevious[5]       = {0};                               // Savess the previous state of the toggle switches for the Switch-Case
 
 // variables will change:
-int BlueButtonState = LOW;         // variable for reading the toggle switch status
-int RedButtonState = LOW;          // variable for reading the toggle switch status
-int GreenButtonState = LOW;        // variable for reading the toggle switch status
-int OrangeButtonState = LOW;       // variable for reading the toggle switch status
-int WhiteButtonState = LOW;        // variable for reading the toggle switch status
+int                 BlueButtonState         = LOW;                               // variable for reading the toggle switch status
+int                 RedButtonState          = LOW;                               // variable for reading the toggle switch status
+int                 GreenButtonState        = LOW;                               // variable for reading the toggle switch status
+int                 OrangeButtonState       = LOW;                               // variable for reading the toggle switch status
+int                 WhiteButtonState        = LOW;                               // variable for reading the toggle switch status
 
-int BlueStateNow = 0;
-int RedStateNow = 0;
-int GreenStateNow = 0;
-int OrangeStateNow = 0;
-int WhiteStateNow = 0;
+int                 BlueStateNow            = 0;
+int                 RedStateNow             = 0;
+int                 GreenStateNow           = 0;
+int                 OrangeStateNow          = 0;
+int                 WhiteStateNow           = 0;
 
 //boolean buttonState = LOW;
-int BluePreviousState = LOW;    //Saves the previous state of the toggle switch 
-int RedPreviousState = LOW;     //Saves the previous state of the toggle switch
-int GreenPreviousState = LOW;   //Saves the previous state of the toggle switch
-int OrangePreviousState = LOW;  //Saves the previous state of the toggle switch
-int WhitePreviousState = LOW;   //Saves the previous state of the toggle switch 
+int                 BluePreviousState       = LOW;                                // Saves the previous state of the toggle switch 
+int                 RedPreviousState        = LOW;                                // Saves the previous state of the toggle switch
+int                 GreenPreviousState      = LOW;                                // Saves the previous state of the toggle switch
+int                 OrangePreviousState     = LOW;                                // Saves the previous state of the toggle switch
+int                 WhitePreviousState      = LOW;                                // Saves the previous state of the toggle switch 
 
 
-unsigned long DebounceDelay = 50;
-unsigned long DebounceTimer = 0;
-unsigned long LoopDelay = 1000;             // ticks down at 1000ms rate (normal speed)
-unsigned long LoopTimer = 0;
-unsigned long PassDebounceTimer = 0;        
-unsigned long PassDebounceDelay = 50;
-Adafruit_7segment matrix = Adafruit_7segment();
-boolean drawDots = true;
+unsigned long       DebounceDelay           = 50;
+unsigned long       DebounceTimer           = 0;
+unsigned long       LoopDelay               = 1000;                               // ticks down at 1000ms rate (normal speed)
+unsigned long       LoopTimer               = 0;
+unsigned long       PassDebounceTimer       = 0;        
+unsigned long       PassDebounceDelay       = 50;
+const unsigned long color[5]                = {0x0000FF, 0xFF0000, 0x00FF00, 0xdF8904, 0xFFFFFF};
+Adafruit_7segment   matrix                  = Adafruit_7segment();
+boolean             drawDots                = true;
 
-Adafruit_NeoPixel strip(LED_COUNT, LedStripPin, NEO_RGBW + NEO_KHZ800);   // Declare our NeoPixel strip object (NEO_RGBW should possibly be changed to NEO_GRBW to get the right colors)
+
+
+Adafruit_NeoPixel strip(LED_COUNT, LedStripPin, NEO_RGBW + NEO_KHZ800);           // Declare our NeoPixel strip object (NEO_RGBW should possibly be changed to NEO_GRBW to get the right colors)
 // Argument 1 = Number of pixels in NeoPixel strip
 // Argument 2 = Arduino pin number (most are valid)
 // Argument 3 = Pixel type flags, add together as needed:

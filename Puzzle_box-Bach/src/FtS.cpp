@@ -96,7 +96,8 @@ void StartButton()
   if (digitalRead(StartButtonPin) == HIGH)   //&& digitalRead(MagneticButtonPin) == LOW
     {
      Start = HIGH;
-     LoopDelay = LoopDelay + 100; 
+     Serial.println("starting..");
+     //LoopDelay = LoopDelay + 100; 
     }
 }
 
@@ -217,12 +218,13 @@ void UpdateSequence()
       if (UnlockingSequence[u] > 9){UnlockingSequence[u] = 1;}
       if (UnlockingSequence[u] < 1){UnlockingSequence[u] = 7;}
     } 
-    Serial.println("Unlocking sequence UPDATED");
     SequenceCounter = 0;
+    Serial.println(" ");
     for (int s = 0; s < 5; s++)
     {
       Serial.print(UnlockingSequence[s]);
     }
+    Serial.println("Unlocking sequence UPDATED");
   }
 }
 

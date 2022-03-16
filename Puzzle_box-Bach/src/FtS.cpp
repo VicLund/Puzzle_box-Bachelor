@@ -79,13 +79,15 @@ Adafruit_NeoPixel stripNumbers(LED_COUNT_Numbers, LedStripNumbersPin, NEO_RGB + 
 // Argument 2 = Arduino pin number (most are valid)
 // Argument 3 = Pixel type flags, add together as needed:
 
-
 void ProgressCheck()
 {
 if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 1 && Progress[4] == 1) && (MyRegister[0] == 1 && MyRegister[1] == 1 && MyRegister[2] == 1 && MyRegister[3] == 1 && MyRegister[4] == 1))
   {
     Serial.println("Congratulations, you beat the game!");
     matrix.print("DONE");
+    matrix.writeDisplay(); 
+    Allow_Start = HIGH;
+
   }
 }
 
@@ -190,11 +192,11 @@ void ProgressIndicator()
    {
      if((Progress[p] == MyRegister[p]) && MyRegister[p] == 1)
        {
-         if(p == 0) {ProgressBar[p] = 0x0000FF;}    
-         if(p == 1) {ProgressBar[p] = 0x00FF00;}
-         if(p == 2) {ProgressBar[p] = 0xFF0000;}
-         if(p == 3) {ProgressBar[p] = 0x30FF00;}
-         if(p == 4) {ProgressBar[p] = 0xFFFFFF;}
+         if(p == 0) {ProgressBar[p] = 0x0000FF;}    // BLUE
+         if(p == 1) {ProgressBar[p] = 0x00FF00;}    // RED
+         if(p == 2) {ProgressBar[p] = 0xFF0000;}    // GREEN
+         if(p == 3) {ProgressBar[p] = 0x30FF00;}    // ORANGE
+         if(p == 4) {ProgressBar[p] = 0xFFFFFF;}    // WHITE
          stripProgress.setPixelColor(p, ProgressBar[p]); 
         }
      if ((MyRegister[p] == 0) || (Progress[p] == 0))
@@ -207,8 +209,7 @@ void ProgressIndicator()
 
 void UpdateSequence()
 {
-  Serial.println(SequenceCounter);
-  if (SequenceCounter > 15)
+  if (SequenceCounter > 30)
   {
     for (int u = 0, m = 5; u < 5; u++, m--)
     {
@@ -221,6 +222,7 @@ void UpdateSequence()
     {
       Serial.print(UnlockingSequence[s]);
     }
+    Serial.println("Unlocking sequence UPDATED");
   }
 }
 
@@ -393,19 +395,16 @@ stripNumbers.setBrightness(BRIGHTNESS);
 }
 
 
-
-
 void loop() 
 {
   StartButton();
   while (Allow_Start == HIGH)
   {
     Serial.println("Can you figure out how to start the game?");
-    matrix.print("DONE");
     matrix.writeDisplay();
   }
 
- while (Allow_Start == LOW && Start) //== HIGH && digitalRead(MagneticButtonPin) == LOW
+ while (Allow_Start == LOW && Start == HIGH) //== HIGH && digitalRead(MagneticButtonPin) == LOW
  {
     for (uint16_t counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
     { 
@@ -477,7 +476,6 @@ void loop()
                   }
                 if ((counterA == UnlockingSequence[i] || counterB == UnlockingSequence[i] || counterC == UnlockingSequence[i] || counterD == UnlockingSequence[i]) && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)
                   {
-                   Serial.println("Progress..");
                    GameProgress();
                    SwitchPrevious[i] = 1;
                    Progress[i] = 1;
@@ -493,4 +491,3 @@ void loop()
   }
 
 }
-

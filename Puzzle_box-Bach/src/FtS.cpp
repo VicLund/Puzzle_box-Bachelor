@@ -34,7 +34,7 @@ int                 MyRegister[5]           = {0, 0, 0, 0, 0};              // S
 int                 Progress[5]             = {0, 0, 0, 0, 0};              // Saves the progress in an array
 int                 SwitchPrevious[5]       = {0, 0, 0, 0, 0};              // Savess the previous state of the toggle switches for the Switch-Case
 int                 UnlockingSequence[5]    = {8, 3, 5, 9, 7};              // This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
-int                 SequenceCounter           = 0;                            // Update UnlockingSequence every 15 second
+int                 SequenceCounter         = 0;                            // Update UnlockingSequence every 15 second
 int                 PreviousNumber          = 0;
 
 // variables will change:
@@ -217,12 +217,12 @@ void UpdateSequence()
       if (UnlockingSequence[u] > 9){UnlockingSequence[u] = 1;}
       if (UnlockingSequence[u] < 1){UnlockingSequence[u] = 7;}
     } 
+    Serial.println("Unlocking sequence UPDATED");
     SequenceCounter = 0;
     for (int s = 0; s < 5; s++)
     {
       Serial.print(UnlockingSequence[s]);
     }
-    Serial.println("Unlocking sequence UPDATED");
   }
 }
 
@@ -491,3 +491,4 @@ void loop()
   }
 
 }
+

@@ -10,6 +10,7 @@
 #include <Adafruit_I2CDevice.h>
 #include <TM1637Display.h>
 
+
 // Module connection pins (Digital Pins)
 #define CLK A5
 #define DIO A6
@@ -22,18 +23,20 @@ int                 RotarySelect            = HIGH;                             
 int                 RotaryRight             = HIGH;                                              //
 int                 RotaryLeft              = HIGH;                                              //
 int                 SelectDigit             = 0;                                                 //
-int                 Attempts                = 4;                                                 //
+int                 Attempts                = 6;                                                 //
 int                 SelectStateNow          = 0;                                                 //
 int                 RightStateNow           = 0;                                                 //
 int                 LeftStateNow            = 0;                                                 //
 int                 SelectPreviousState     = 0;                                                 //
 int                 RightPreviousState      = 0;                                                 //
 int                 LeftPreviousState       = 0;                                                 //
+int                 Password                = 0;
 int                 MyRotaryRegister[3]     = {0, 0, 0};                                         //
 int                 RotaryPrevious[3]       = {0, 0, 0};                                         //
 int                 Rotary[3]               = {0, 1, 2};                                         // 
 int                 Action[3]               = {0, 0, 0};                                         //
-unsigned int        Password[4]             = {3, 5, 2, 8};                                      //
+const unsigned int  Password1[4]            = {3, 7, 2, 5};                                //
+const unsigned int  Password2[4]            = {7, 0, 3, 4};                                //
 unsigned int        Digit[4]                = {0, 0, 0, 0};                                      //
 unsigned long       DebounceDelay           = 20;                                                // Debounce delay for toggle switches
 unsigned long       DebounceTimer           = 0;                                                 // Stores the current value of millis()   
@@ -53,16 +56,21 @@ const uint8_t       SEG_DONE[]              = {
 
 void EnterPassword()
 {
-  if (Digit[0] == Password[0] && Digit[1] == Password[1] && Digit[2] == Password[2] && Digit[3] == Password[3])
+  if (Password == 0 && (Digit[0] == Password1[0] && Digit[1] == Password1[1] && Digit[2] == Password1[2] && Digit[3] == Password1[3]))
    {
-    Serial.println("Bomb has been defused");
-    delay(1000);
-    display.setSegments(SEG_DONE);
-    delay(100000);
+     Serial.println("Correct. Step one of two compeleted.");
+     Password = Password +1;
+   }
+  if (Password == 1 && (Digit[0] == Password2[0] && Digit[1] == Password2[1] && Digit[2] == Password2[2] && Digit[3] == Password2[3]))
+   {
+     Serial.println("Bomb has been defused");
+     delay(1000);
+     display.setSegments(SEG_DONE);
+     delay(100000);
    }
   else
   {
-    if (Digit[0] != Password[0] || Digit[1] != Password[1] || Digit[2] != Password[2] || Digit[3] != Password[3])
+    if ((Password == 0 && (Digit[0] != Password1[0] || Digit[1] != Password1[1] || Digit[2] != Password1[2] || Digit[3] != Password1[3])) || (Password == 1 && (Digit[0] != Password2[0] || Digit[1] != Password2[1] || Digit[2] != Password2[2] || Digit[3] != Password2[3]))) 
     {
       Serial.print("Wrong password, you have ");
       Serial.print((Attempts - 1));

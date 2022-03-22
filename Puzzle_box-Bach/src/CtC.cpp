@@ -41,17 +41,18 @@ unsigned int        Digit[4]                = {0, 0, 0, 0};                     
 unsigned long       DebounceDelay           = 20;                                                // Debounce delay for toggle switches
 unsigned long       DebounceTimer           = 0;                                                 // Stores the current value of millis()   
 uint8_t             data[4]                 = {0xff, 0xff, 0xff, 0xff };                         //                                                           //
-const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};
-const uint8_t       SEG_SWIRL2[]            = {0, 0, SEG_A, SEG_A};
-const uint8_t       SEG_SWIRL3[]            = {0 ,0 ,0 ,SEG_B | SEG_C};
-const uint8_t       SEG_SWIRL4[]            = {0, 0, SEG_D, SEG_D};
-const uint8_t       SEG_SWIRL5[]            = {SEG_D, SEG_D, 0, 0};
-const uint8_t       SEG_SWIRL6[]            = {SEG_E | SEG_F, 0, 0, 0};
+const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};                              //
+const uint8_t       SEG_SWIRL2[]            = {0, 0, SEG_A, SEG_A};                              //
+const uint8_t       SEG_SWIRL3[]            = {0 ,0 ,0 ,SEG_B | SEG_C};                          //
+const uint8_t       SEG_SWIRL4[]            = {0, 0, SEG_D, SEG_D};                              //
+const uint8_t       SEG_SWIRL5[]            = {SEG_D, SEG_D, 0, 0};                              //
+const uint8_t       SEG_SWIRL6[]            = {SEG_E | SEG_F, 0, 0, 0};                          //
 const uint8_t       SEG_DONE[]              = {SEG_B | SEG_C | SEG_D | SEG_E | SEG_G, SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F, SEG_C | SEG_E | SEG_G, SEG_A | SEG_D | SEG_E | SEG_F | SEG_G};
 const uint8_t       SEG_PASS[]              = {SEG_A | SEG_B | SEG_E | SEG_F | SEG_G , SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G , SEG_A | SEG_C | SEG_D | SEG_G | SEG_F , SEG_A | SEG_C | SEG_D | SEG_G | SEG_F};
 const uint8_t       SEG_FAIL[]              = {SEG_A | SEG_F | SEG_E | SEG_G , SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G , SEG_E | SEG_F, SEG_F | SEG_E | SEG_D};
 const uint8_t       SEG_BLINK[]             = {SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G};
-TM1637Display       display(CLK, DIO);
+const uint8_t       SEG_BOOM[]              = {SEG_E | SEG_G, SEG_E | SEG_F, SEG_E | SEG_F | SEG_A | SEG_B | SEG_G, 0};
+TM1637Display       display                   (CLK, DIO);
 
 
 
@@ -225,10 +226,11 @@ while (Attempts == 0)
    {
      Serial.print(t);
      Serial.println("...");
-     delay(1000);
+     DisplayBlink();
    }
+  display.setSegments(SEG_BOOM);
   Serial.println("Bomb exploded.");
-  delay(100000);
+  delay(1000000);
 }
 
  DebounceSelect();

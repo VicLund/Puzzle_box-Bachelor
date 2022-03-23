@@ -5,8 +5,8 @@
 			"path": "Puzzle_box-Bach"
 		},
 		{
-			"name": "I2C_LED_strip_test_Master",
-			"path": "..\\..\\..\\..\\PlatformIO\\Projects\\I2C_LED_strip_test_Master"
+			"name": "File_for_testing_ELE301_code",
+			"path": "..\\..\\..\\..\\PlatformIO\\Projects\\File_for_testing_ELE301_code"
 		}
 	],
 	"settings": {}

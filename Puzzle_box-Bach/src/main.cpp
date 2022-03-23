@@ -57,8 +57,17 @@ boolean RtN_LED_on = false;
 boolean FtS_LED_on = false;
 boolean CtC_LED_on = false;
 
+// Set the LCD address to 0x20 for a 16x02 display
+LiquidCrystal_I2C lcd(0x20, 16, 2);
+
+// Menu variable that always starts at 1
+int menu = 1;
+
 void setup() {
   Serial.begin(9600);
+
+  lcd.init();
+  lcd.backlight();
 
   //Setting the pin mode for all buttons
   pinMode(menuButtonPgUp, INPUT_PULLUP);

@@ -3,6 +3,10 @@
 		{
 			"name": "Puzzle_box-Bach",
 			"path": "Puzzle_box-Bach"
+		},
+		{
+			"name": "I2C_LED_strip_test_Master",
+			"path": "..\\..\\..\\..\\PlatformIO\\Projects\\I2C_LED_strip_test_Master"
 		}
 	],
 	"settings": {}

@@ -210,7 +210,7 @@ void ProgressIndicator()
 
 void UpdateSequence()
 {
-  if (SequenceCounter > 30)
+  if (SequenceCounter > 60)
   {
     for (int u = 0, m = 5; u < 5; u++, m--)
     {

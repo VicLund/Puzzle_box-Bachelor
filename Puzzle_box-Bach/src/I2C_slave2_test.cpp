@@ -27,7 +27,7 @@ void setup() {
   Serial.begin(9600);
 
   //I2C setup
-  Wire.begin(2);
+  Wire.begin(0x02);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
 

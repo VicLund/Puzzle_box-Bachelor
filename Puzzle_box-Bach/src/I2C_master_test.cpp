@@ -10,8 +10,8 @@
 #include <LiquidCrystal_I2C.h>
 
 //I2C slaves defines
-#define RtN_Slave 1
-#define FtS_Slave 2
+#define RtN_Slave 0x01
+#define FtS_Slave 0x02
 
 //Define a variable to send
 byte sendRed = 1;

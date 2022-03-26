@@ -14,11 +14,15 @@
 // Module connection pins (Digital Pins)
 #define CLK A5
 #define DIO A6
-#define BRIGHTNESS 50 
+#define BRIGHTNESS 80 
+#define LED_COUNT_Numbers  4                                                // How many NeoPixels are attached to the Arduino?
+
  // Data in pins
-const int           RotaryNC_Pin            = 0;                                                 // Data in Pin r
-const int           RotarySW1_Pin           = 1;                                                 // Data in Pin 
-const int           RotarySW2_Pin           = 2;                                                 // Data in Pin 
+const int           LedStripNumberzPin      = A0;                           // Data in Pin for the Led Strip indicator
+const int           RotaryNC_Pin            = 5;                                                 // Data in Pin r
+const int           RotarySW1_Pin           = 6;                                                 // Data in Pin 
+const int           RotarySW2_Pin           = 7;                                                 // Data in Pin 
+
 int                 RotarySelect            = HIGH;                                              //
 int                 RotaryRight             = HIGH;                                              //
 int                 RotaryLeft              = HIGH;                                              //
@@ -38,7 +42,7 @@ int                 Action[3]               = {0, 0, 0};                        
 const unsigned int  Password1[4]            = {3, 7, 2, 5};                                      //
 const unsigned int  Password2[4]            = {7, 0, 3, 4};                                      //
 unsigned int        Digit[4]                = {0, 0, 0, 0};                                      //
-unsigned long       DebounceDelay           = 20;                                                // Debounce delay for toggle switches
+unsigned long       DebounceDelay           = 10;                                                // Debounce delay for toggle switches
 unsigned long       DebounceTimer           = 0;                                                 // Stores the current value of millis()   
 uint8_t             data[4]                 = {0xff, 0xff, 0xff, 0xff };                         //                                                           //
 const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};                              //
@@ -53,8 +57,73 @@ const uint8_t       SEG_FAIL[]              = {SEG_A | SEG_F | SEG_E | SEG_G , S
 const uint8_t       SEG_BLINK[]             = {SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G};
 const uint8_t       SEG_BOOM[]              = {SEG_E | SEG_G, SEG_E | SEG_F, SEG_E | SEG_F | SEG_A | SEG_B | SEG_G, 0};
 TM1637Display       display                   (CLK, DIO);
+Adafruit_NeoPixel   stripNumberz              (LED_COUNT_Numbers, LedStripNumberzPin, NEO_RGB + NEO_KHZ800); 
 
 
+
+ void LedIndicator()
+ {
+   for (int i = 0; i < 4; i++)
+    { 
+      switch(Digit[i])
+        {
+          case 0:
+            if (Password == 0){stripNumberz.setPixelColor(i, 0x00FF00); break;}              // Red
+            if (Password == 1 && i == 1){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 1 && i != 1){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange
+
+          case 1:
+            stripNumberz.setPixelColor(i, 0x00FF00);                                         // Red
+            break;
+
+          case 2:
+            if (Password == 1){stripNumberz.setPixelColor(i, 0x00FF00); break;}              // Red
+            if (Password == 0 && i == 2){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 0 && i != 2){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange
+
+          case 3:
+            if (Password == 0 && i == 0){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 0 && i != 0){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange            
+            if (Password == 1 && i == 2){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 1 && i != 2){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange
+
+          case 4:
+            if (Password == 0){stripNumberz.setPixelColor(i, 0x00FF00); break;}              // Red
+            if (Password == 1 && i == 3){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 1 && i != 3){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange
+
+          case 5:
+            if (Password == 1){stripNumberz.setPixelColor(i, 0x00FF00); break;}              // Red
+            if (Password == 0 && i == 3){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 0 && i != 3){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange
+
+          case 6:
+            stripNumberz.setPixelColor(i, 0x00FF00);                                         // Red
+            break;
+
+          case 7:
+            if (Password == 0 && i == 1){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 0 && i != 1){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange            
+            if (Password == 1 && i == 0){stripNumberz.setPixelColor(i, 0xFF0000); break;}    // Green
+            if (Password == 1 && i != 0){stripNumberz.setPixelColor(i, 0x40FF00); break;}    // Orange
+
+          case 8:
+            stripNumberz.setPixelColor(i, 0x00FF00);                                         // Red
+            break;
+
+          case 9:
+            stripNumberz.setPixelColor(i, 0x00FF00);                                         // Red
+            break;
+          
+          default:
+            stripNumberz.setPixelColor(i, 0x00FF00);                                         // Red 
+            break;
+        }
+    }
+  stripNumberz.show();
+  memset(Digit, 0, sizeof(Digit));
+  memset(data, 0, sizeof(data));
+ }
 
 void DisplaySwirl()
 {
@@ -98,8 +167,6 @@ void EnterPassword()
         DisplaySwirl();
         display.setSegments(SEG_FAIL);
         delay(3000);
-        memset(Digit, 0, sizeof(Digit));
-        memset(data, 0, sizeof(data));
         display.clear();
         SelectDigit = 0;
       }
@@ -111,8 +178,6 @@ void EnterPassword()
         display.setSegments(SEG_PASS);
         delay(3000);
         Password = Password +1;
-        memset(Digit, 0, sizeof(Digit));
-        memset(data, 0, sizeof(data));
         display.clear();
         SelectDigit = 0;
       }
@@ -212,6 +277,11 @@ Serial.begin(9600);
 pinMode(RotaryNC_Pin, INPUT_PULLUP);        // Initialize Toggle switch pins as NC
 pinMode(RotarySW1_Pin, INPUT_PULLUP);
 pinMode(RotarySW2_Pin, INPUT_PULLUP);
+pinMode(LedStripNumberzPin, OUTPUT);
+
+stripNumberz.begin();                        // INITIALIZE NeoPixel strip object (REQUIRED)
+stripNumberz.show();                         // Turn OFF all pixels ASAP
+stripNumberz.setBrightness(BRIGHTNESS);
 display.setBrightness(BRIGHTNESS);
 display.clear();
 }
@@ -337,6 +407,8 @@ while (Attempts == 0)
         {
          display.clear();
          EnterPassword();
+         LedIndicator();
+         
         }
      memset(Action, 0, sizeof(Action));
     }

@@ -11,14 +11,14 @@
 #include <TM1637Display.h>
 
 
-// Module connection pins (Digital Pins)
+// Module connection pins 
 #define CLK A5
 #define DIO A6
 #define BRIGHTNESS 80 
-#define LED_COUNT_Numbers  4                                                // How many NeoPixels are attached to the Arduino?
+#define LED_COUNT_Numbers  4                                                                     // How many NeoPixels are attached to the Arduino?
 
  // Data in pins
-const int           LedStripNumberzPin      = A0;                           // Data in Pin for the Led Strip indicator
+const int           LedStripNumberzPin      = A0;                                                // Data in Pin for the Led Strip indicator
 const int           RotaryNC_Pin            = 5;                                                 // Data in Pin r
 const int           RotarySW1_Pin           = 6;                                                 // Data in Pin 
 const int           RotarySW2_Pin           = 7;                                                 // Data in Pin 

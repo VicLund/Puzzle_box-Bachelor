@@ -42,7 +42,7 @@ int                 Action[3]               = {0, 0, 0};                        
 const unsigned int  Password1[4]            = {3, 7, 2, 5};                                      //
 const unsigned int  Password2[4]            = {7, 0, 3, 4};                                      //
 unsigned int        Digit[4]                = {0, 0, 0, 0};                                      //
-unsigned long       DebounceDelay           = 10;                                                // Debounce delay for toggle switches
+unsigned long       DebounceDelay           = 20;                                                // Debounce delay for toggle switches
 unsigned long       DebounceTimer           = 0;                                                 // Stores the current value of millis()   
 uint8_t             data[4]                 = {0xff, 0xff, 0xff, 0xff };                         //                                                           //
 const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};                              //
@@ -63,9 +63,12 @@ Adafruit_NeoPixel   stripNumberz              (LED_COUNT_Numbers, LedStripNumber
 
  void LedIndicator()
  {
-   for (int i = 0; i < 4; i++)
-    { 
-      switch(Digit[i])
+   if ((Digit[0] + Digit[1] + Digit[2] + Digit[3]) == 0) {stripNumberz.clear(); stripNumberz.show();}
+   if ((Digit[0] + Digit[1] + Digit[2] + Digit[3]) != 0)
+   {
+    for (int i = 0; i < 4; i++)
+     { 
+       switch(Digit[i])
         {
           case 0:
             if (Password == 0){stripNumberz.setPixelColor(i, 0x00FF00); break;}              // Red
@@ -119,11 +122,13 @@ Adafruit_NeoPixel   stripNumberz              (LED_COUNT_Numbers, LedStripNumber
             stripNumberz.setPixelColor(i, 0x00FF00);                                         // Red 
             break;
         }
-    }
-  stripNumberz.show();
-  memset(Digit, 0, sizeof(Digit));
-  memset(data, 0, sizeof(data));
- }
+      }    
+    stripNumberz.show(); 
+    delay(1000); 
+    memset(Digit, 0, sizeof(Digit));
+    memset(data, 0, sizeof(data)); 
+  }
+}
 
 void DisplaySwirl()
 {
@@ -180,6 +185,17 @@ void EnterPassword()
         Password = Password +1;
         display.clear();
         SelectDigit = 0;
+        for (int h = 0; h < 4; h++)
+        {stripNumberz.clear(); stripNumberz.setPixelColor(h, 0xFF0000); stripNumberz.show(); delay(500);} 
+        stripNumberz.clear();
+        stripNumberz.setPixelColor(0, 0xFF0000);
+        stripNumberz.setPixelColor(1, 0xFF0000);
+        stripNumberz.setPixelColor(2, 0xFF0000);
+        stripNumberz.setPixelColor(3, 0xFF0000);
+        stripNumberz.show();
+        delay(1000);
+        memset(Digit, 0, sizeof(Digit));
+        //stripNumberz.clear();
       }
   if (Password == 1 && (Digit[0] == Password2[0] && Digit[1] == Password2[1] && Digit[2] == Password2[2] && Digit[3] == Password2[3]))
       {
@@ -188,6 +204,7 @@ void EnterPassword()
         display.setSegments(SEG_PASS);
         delay(2000);
         DisplayBlink();
+        stripNumberz.clear();
         display.setSegments(SEG_DONE);
         delay(1000000);
       }
@@ -405,10 +422,8 @@ while (Attempts == 0)
         }
      if (Action[0] == 1)
         {
-         display.clear();
          EnterPassword();
          LedIndicator();
-         
         }
      memset(Action, 0, sizeof(Action));
     }

@@ -104,49 +104,6 @@ unsigned long lastDebounceTimeNote = 0;
 
 DFRobotDFPlayerMini myDFPlayer;
 
-void setup()
-{
-  Serial1.begin(9600);
-  Serial.begin(115200);
-  
-  pinMode(up, INPUT_PULLUP);
-  pinMode(down, INPUT_PULLUP);
-  pinMode(play, INPUT_PULLUP);
-
-  pinMode(A, INPUT_PULLUP);
-  pinMode(B, INPUT_PULLUP);
-  pinMode(c, INPUT_PULLUP);
-  pinMode(D, INPUT_PULLUP);
-  pinMode(E, INPUT_PULLUP);
-  pinMode(F, INPUT_PULLUP);
-  pinMode(G, INPUT_PULLUP);
-  pinMode(C, INPUT_PULLUP);
-
-  myDFPlayer.volume(volume);  //Set volume value to the volume int
-  myDFPlayer.play(13);  //Play the first melody
-}
-
-void loop()
-{ 
-  debounceup(); //button for volume up
-  debouncedown(); //button for volume down
-  debounceplay(); //button for replaying the melody
-  
-  debouncec(); //button for low c note
-  debounceD(); //button for D note
-  debounceE(); //button for E note
-  debounceF(); //button for F note
-  debounceG(); //button for G note
-  debounceA(); //button for A note
-  debounceB(); //button for B note
-  debounceC(); //button for high C note
-  
-  twinkle(); //check for first melody
-  yankee(); //check for second melody
-  river(); //check for third melody
-  total(); //check for all melodies
-}
-
 void debounceup(){
   int up_reading = digitalRead(up);
 
@@ -614,3 +571,45 @@ void total(){
     }
   }
 
+void setup()
+{
+  Serial1.begin(9600);
+  Serial.begin(115200);
+  
+  pinMode(up, INPUT_PULLUP);
+  pinMode(down, INPUT_PULLUP);
+  pinMode(play, INPUT_PULLUP);
+
+  pinMode(A, INPUT_PULLUP);
+  pinMode(B, INPUT_PULLUP);
+  pinMode(c, INPUT_PULLUP);
+  pinMode(D, INPUT_PULLUP);
+  pinMode(E, INPUT_PULLUP);
+  pinMode(F, INPUT_PULLUP);
+  pinMode(G, INPUT_PULLUP);
+  pinMode(C, INPUT_PULLUP);
+
+  myDFPlayer.volume(volume);  //Set volume value to the volume int
+  myDFPlayer.play(13);  //Play the first melody
+}
+
+void loop()
+{ 
+  debounceup(); //button for volume up
+  debouncedown(); //button for volume down
+  debounceplay(); //button for replaying the melody
+  
+  debouncec(); //button for low c note
+  debounceD(); //button for D note
+  debounceE(); //button for E note
+  debounceF(); //button for F note
+  debounceG(); //button for G note
+  debounceA(); //button for A note
+  debounceB(); //button for B note
+  debounceC(); //button for high C note
+  
+  twinkle(); //check for first melody
+  yankee(); //check for second melody
+  river(); //check for third melody
+  total(); //check for all melodies
+}

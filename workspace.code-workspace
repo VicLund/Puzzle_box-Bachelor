@@ -3,6 +3,10 @@
 		{
 			"name": "Puzzle_box-Bach",
 			"path": "Puzzle_box-Bach"
+		},
+		{
+			"name": "File_for_testing_ELE301_code",
+			"path": "..\\..\\..\\..\\PlatformIO\\Projects\\File_for_testing_ELE301_code"
 		}
 	],
 	"settings": {}

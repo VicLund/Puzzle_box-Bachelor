@@ -26,6 +26,9 @@ const int FtS_LED = 6;
 const int CtC_button = 7;
 const int CtC_LED = 8;
 
+//Variable for toggle switch
+const int toggle_switch = 9;
+
 // Current button state and last button state variables for menu buttons
 int menuButtonPgUp_state;
 int menuButtonPgUp_lastState = LOW;
@@ -35,6 +38,8 @@ int menuButtonEnter_state;
 int menuButtonEnter_lastState = LOW;
 int menuButtonEsc_state;
 int menuButtonEsc_lastState = LOW;
+int toggleSwitch_state = 0;
+int toggleSwitch_lastState = LOW;
 
 // Current button state and last button state variablea for module buttons
 int LO_buttonState;
@@ -50,6 +55,7 @@ int CtC_lastButtonState = LOW;
 unsigned long debounceDelay = 50;
 unsigned long lastDebounceTimeMenu = 0;
 unsigned long lastDebounceTimeModule = 0;
+unsigned long lastDebounceTimeToggle = 0;
 
 // Boolean variables for checking if the light is on or off on the button
 boolean LO_LED_on = false;
@@ -62,6 +68,19 @@ LiquidCrystal_I2C lcd(0x20, 16, 2);
 
 // Menu variable that always starts at 1
 int menu = 1;
+
+//Forward delaring functions
+void debounceMenuButtonPgUp();
+void debounceMenuButtonPgDn();
+void debounceMenuButtonEnter();
+void debounceMenuButtonEsc();
+  
+void debounce_LO_Button();
+void debounce_RtN_Button();
+void debounce_FtS_Button();
+void debounce_CtC_Button();
+
+void debounceToggleSwitch();
 
 void setup() {
   Serial.begin(9600);
@@ -83,6 +102,22 @@ void setup() {
   pinMode(FtS_LED, OUTPUT);
   pinMode(CtC_button, INPUT_PULLUP);
   pinMode(CtC_LED, OUTPUT);
+
+  pinMode(toggle_switch, INPUT_PULLDOWN);
+}
+
+void loop() {
+  //Running the button functions in the main loop function so the program always "listens" for button presses
+  debounceMenuButtonPgUp();
+  debounceMenuButtonPgDn();
+  debounceMenuButtonEnter();
+  debounceMenuButtonEsc();
+  
+  debounce_LO_Button();
+  debounce_RtN_Button();
+  debounce_FtS_Button();
+  debounce_CtC_Button();
+
 }
 
 // Debounce function for Menu button "Page Up"
@@ -315,18 +350,25 @@ void debounce_CtC_Button(){
   CtC_lastButtonState = CtC_reading;
 }
 
-void loop() {
-  //Running the button functions in the main loop function so the program always "listens" for button presses
-  debounceMenuButtonPgUp();
-  debounceMenuButtonPgDn();
-  debounceMenuButtonEnter();
-  debounceMenuButtonEsc();
-  
-  debounce_LO_Button();
-  debounce_RtN_Button();
-  debounce_FtS_Button();
-  debounce_CtC_Button();
+void debounceToggleSwitch(){
+  int toggleSwitch_reading = digitalRead(toggle_switch);
 
+  if (toggleSwitch_reading != toggleSwitch_lastState){
+    lastDebounceTimeToggle = millis();
+  }
+
+  if ((millis() - lastDebounceTimeToggle) > debounceDelay){
+    if (toggleSwitch_reading != toggleSwitch_state){
+      toggleSwitch_state = toggleSwitch_reading;
+      if (toggleSwitch_state == LOW){
+        Serial.println("The bomb has been disarmed");
+      }
+      if (toggleSwitch_state == HIGH){
+        Serial.println("Bomb has been armed");
+      }
+    }
+  }
+  toggleSwitch_lastState = toggleSwitch_reading;
 }
 
 // Old debounce functions for module buttons

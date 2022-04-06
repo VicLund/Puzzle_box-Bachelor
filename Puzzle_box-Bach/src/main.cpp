@@ -11,8 +11,8 @@
 //#include <DFRobot_I2CMultiplexer.h>
 
 //I2C slaves defines
-#define RtN_Slave 0x01
-#define FtS_Slave 0x02
+#define slaveAdr1 0x01
+#define slaveAdr2 0x02
 
 //Define variable to send to slaves
 int RtN = 1;
@@ -268,6 +268,12 @@ void debounceMenuButtonEsc(){
     if ((millis() - lastDebounceTimeMenu > longPressDelay) && (longPressActive == false)) {
       longPressActive = true;
       Serial.println("Esc button pressed: long press");
+      Wire.beginTransmission(slaveAdr1);
+      Wire.write(WDT_reset);
+      Wire.endTransmission();
+      Wire.beginTransmission(slaveAdr2);
+      Wire.write(WDT_reset);
+      Wire.endTransmission();
       executeReset();
       //resetFunc();
     }
@@ -474,17 +480,63 @@ void LO_func(){
 void RtN_func(){
   moduleChosen = true;
   Serial.println("RtN function running");
-  delay(1000);
+  delay(100);
+  Wire.beginTransmission(slaveAdr1);
+  Wire.write(RtN);
+  Wire.endTransmission();
+  //requestSlave1();
 }
 
 void FtS_func(){
   moduleChosen = true;
   Serial.println("FtS function running");
-  delay(1000);
+  delay(100);
+  Wire.beginTransmission(slaveAdr2);
+  Wire.write(FtS);
+  Wire.endTransmission();
+  //requestSlave2();
 }
 
 void CtC_func(){
   moduleChosen = true;
   Serial.println("CtC function running");
-  delay(1000);
+  delay(100);
+  Wire.beginTransmission(slaveAdr2);
+  Wire.write(CtC);
+  Wire.endTransmission();
+  //requestSlave2();
 }
+
+/*void requestSlave1(){
+  Wire.requestFrom(slaveAdr1, 1);
+    masterReceiveSlave1 = Wire.read();
+  if(masterReceiveSlave1 == 0){
+    noSignal_1(); 
+  }
+  else if(masterReceiveSlave1 == 1){
+    Serial.println("RtN module done!");
+  }
+}
+
+void requestSlave2(){
+  Wire.requestFrom(slaveAdr2, 1);
+  masterReceiveSlave2 = Wire.read();
+  if(masterReceiveSlave2 == 0){
+    noSignal_1(); 
+  }
+  else if(masterReceiveSlave2 == 1){
+    Serial.println("FtS module done!");
+  }
+  else if(masterReceiveSlave2 == 2){
+    Serial.println("CtC module done!");
+  }
+}
+
+void noSignal_slave1(){
+  requestSlave1();
+}
+
+void noSignal_slave2(){
+  requestSlave2();
+}
+*/

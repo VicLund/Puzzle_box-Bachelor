@@ -10,6 +10,20 @@
 #include <LiquidCrystal_I2C.h>
 //#include <DFRobot_I2CMultiplexer.h>
 
+//I2C slaves defines
+#define RtN_Slave 0x01
+#define FtS_Slave 0x02
+
+//Define variable to send to slaves
+int RtN = 1;
+int FtS = 2;
+int CtC = 3;
+int WDT_reset = 9;
+
+//Define a variable to receive
+byte masterReceiveSlave1;
+byte masterReceiveSlave2;
+
 // Variables for the LED gravity buttons for the menu and setting them to a pin
 const int menuButtonPgUp = A0;
 const int menuButtonPgDn = A1;

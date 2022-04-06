@@ -53,6 +53,8 @@ int CtC_lastButtonState = LOW;
 
 // Declaring debounce variables
 unsigned long debounceDelay = 50;
+unsigned long longPressDelay = 3000;
+
 unsigned long lastDebounceTimeMenu = 0;
 unsigned long lastDebounceTimeModule = 0;
 unsigned long lastDebounceTimeToggle = 0;
@@ -69,6 +71,13 @@ LiquidCrystal_I2C lcd(0x20, 16, 2);
 // Menu variable that always starts at 1
 int menu = 1;
 
+// Define the Watchdog Interrupt register manually
+#define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
+
+// Long and short button press variables (only used for Esc button)
+boolean shortPressActive = false;
+boolean longPressActive = false;
+
 //Forward delaring functions
 void debounceMenuButtonPgUp();
 void debounceMenuButtonPgDn();
@@ -82,9 +91,15 @@ void debounce_CtC_Button();
 
 void debounceToggleSwitch();
 
+void singleModule();
+void playGame();
+
 void setup() {
   Serial.begin(9600);
-
+  while(!Serial){
+    delay(10);
+  }
+  
   lcd.init();
   lcd.backlight();
 
@@ -120,6 +135,43 @@ void loop() {
 
 }
 
+void updateMenu(){
+  switch(menu){
+    case 0:
+      menu = 1;
+      break;
+    case 1:
+      lcd.clear();
+      lcd.print("> Play 1 module");
+      lcd.setCursor(0,1);
+      lcd.print("  Play game");
+      break;
+    case 2:
+      lcd.clear();
+      lcd.print("  Play 1 module");
+      lcd.setCursor(0,1);
+      lcd.print("> Play game");
+    case 3:
+      menu = 2;
+      break;
+  }
+}
+
+void executeReset(){
+  WDT_CTRL = WDT_CTRL_ENABLE;
+}
+
+void executeAction(){
+  switch(menu){
+    case 1:
+      singleModule();
+      break;
+    case 2:
+      playGame();
+      break;
+  }
+}
+
 // Debounce function for Menu button "Page Up"
 void debounceMenuButtonPgUp(){
   int menuButtonPgUp_reading = digitalRead(menuButtonPgUp);
@@ -133,6 +185,9 @@ void debounceMenuButtonPgUp(){
       menuButtonPgUp_state = menuButtonPgUp_reading;
       if (menuButtonPgUp_state == LOW){
         Serial.println("Page Up button has been pressed");
+        menu--;
+        updateMenu();
+        delay(100);
       }
     }
   }
@@ -152,6 +207,9 @@ void debounceMenuButtonPgDn(){
       menuButtonPgDn_state = menuButtonPgDn_reading;
       if (menuButtonPgDn_state == LOW){
         Serial.println("Page Down button has been pressed");
+        menu++;
+        updateMenu();
+        delay(100);
       }
     }
   }
@@ -172,6 +230,9 @@ void debounceMenuButtonEnter(){
       menuButtonEnter_state = menuButtonEnter_reading;
       if (menuButtonEnter_state == LOW){
         Serial.println("Enter button has been pressed");
+        executeAction();
+        updateMenu();
+        delay(100);
       }
     }
   }
@@ -179,7 +240,7 @@ void debounceMenuButtonEnter(){
 }
 
 // Debounce function for Menu button "Escape"
-void debounceMenuButtonEsc(){
+/*void debounceMenuButtonEsc(){
   int menuButtonEsc_reading = digitalRead(menuButtonEsc);
   
   if (menuButtonEsc_reading != menuButtonEsc_lastState){
@@ -191,11 +252,39 @@ void debounceMenuButtonEsc(){
       menuButtonEsc_state = menuButtonEsc_reading;
       if (menuButtonEsc_state == LOW){
         Serial.println("Escape button has been pressed");
+        executeReset();
+        updateMenu();
+        delay(100);
       }
     }
   }
 
   menuButtonEsc_lastState = menuButtonEsc_reading;
+}*/
+
+void debounceMenuButtonEsc(){
+  if (digitalRead(menuButtonEsc) == HIGH) {
+    if (shortPressActive == false) {
+      shortPressActive = true;
+      lastDebounceTimeMenu = millis();
+    }
+    if ((millis() - lastDebounceTimeMenu > longPressDelay) && (longPressActive == false)) {
+      longPressActive = true;
+      //Serial.println("Long press");
+      executeReset();
+      //resetFunc();
+    }
+  } else {
+    if (shortPressActive == true) {
+      if (longPressActive == true) {
+        longPressActive = false;
+      } else {
+        //Serial.println("Short press");
+        updateMenu();
+      }
+      shortPressActive = false;
+    }
+  }
 }
 
 void LO_buttonLED_status(){
@@ -371,82 +460,10 @@ void debounceToggleSwitch(){
   toggleSwitch_lastState = toggleSwitch_reading;
 }
 
-// Old debounce functions for module buttons
-/*void debounce_LO_Button(){
-  int LO_reading = digitalRead(LO_button);
+void singleModule(){
 
-  if (LO_reading != LO_lastButtonState){
-    lastDebounceTimeModule = millis();
-  }
-
-  if ((millis() - lastDebounceTimeModule) > debounceDelay){
-    if (LO_reading != LO_buttonState){
-      LO_buttonState = LO_reading;
-      if (LO_buttonState == LOW){
-        Serial.println("\"Lights Out\" module has been chosen");
-      }
-    }
-  }
-
-  LO_lastButtonState = LO_reading;
 }
 
-// Debounce function for module button "Recgnize the Note"
-void debounce_RtN_Button(){
-    int RtN_reading = digitalRead(RtN_button);
+void playGame(){
 
-  if (RtN_reading != RtN_lastButtonState){
-    lastDebounceTimeModule = millis();
-  }
-
-  if ((millis() - lastDebounceTimeModule) > debounceDelay){
-    if (RtN_reading != RtN_buttonState){
-      RtN_buttonState = RtN_reading;
-      if (RtN_buttonState == LOW){
-        Serial.println("\"Recognize the Note\" module has been chosen");
-      }
-    }
-  }
-
-  RtN_lastButtonState = RtN_reading;
 }
-
-// Debounce function for module button "Flip the Switch"
-void debounce_FtS_Button(){
-    int FtS_reading = digitalRead(FtS_button);
-
-  if (FtS_reading != FtS_lastButtonState){
-    lastDebounceTimeModule = millis();
-  }
-
-  if ((millis() - lastDebounceTimeModule) > debounceDelay){
-    if (FtS_reading != FtS_buttonState){
-      FtS_buttonState = FtS_reading;
-      if (FtS_buttonState == LOW){
-        Serial.println("\"Flip the Switch\" module has been chosen"); 
-      }
-    }
-  }
-
-  FtS_lastButtonState = FtS_reading;
-}
-
-// Debounce function for module button "Crack the Code"
-void debounce_CtC_Button(){
-    int CtC_reading = digitalRead(CtC_button);
-
-  if (CtC_reading != CtC_lastButtonState){
-    lastDebounceTimeModule = millis();
-  }
-
-  if ((millis() - lastDebounceTimeModule) > debounceDelay){
-    if (CtC_reading != CtC_buttonState){
-      CtC_buttonState = CtC_reading;
-      if (CtC_buttonState == LOW){
-        Serial.println("\"Crack the Code\" module has been chosen");
-      }
-    }
-  }
-
-  CtC_lastButtonState = CtC_reading;
-}*/

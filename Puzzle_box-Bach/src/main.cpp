@@ -11,20 +11,20 @@
 //#include <DFRobot_I2CMultiplexer.h>
 
 // Variables for the LED gravity buttons for the menu and setting them to a pin
-const int menuButtonPgUp = A1;
-const int menuButtonPgDn = A2;
-const int menuButtonEnter = A3;
-const int menuButtonEsc = A4;
+const int menuButtonPgUp = A0;
+const int menuButtonPgDn = A1;
+const int menuButtonEnter = A2;
+const int menuButtonEsc = A3;
 
 // Variables for module buttons, 1 pin for LED, 1 pin for actual button
-const int LO_button = 1;
-const int LO_LED = 2;
-const int RtN_button = 3;
-const int RtN_LED = 4;
-const int FtS_button = 5;
-const int FtS_LED = 6;
-const int CtC_button = 7;
-const int CtC_LED = 8;
+const int LO_button = A5;
+const int LO_LED = A6;
+const int RtN_button = 0;
+const int RtN_LED = 1;
+const int FtS_button = 2;
+const int FtS_LED = 3;
+const int CtC_button = 4;
+const int CtC_LED = 5;
 
 //Variable for toggle switch
 const int toggle_switch = 9;
@@ -38,6 +38,7 @@ int menuButtonEnter_state;
 int menuButtonEnter_lastState = LOW;
 int menuButtonEsc_state;
 int menuButtonEsc_lastState = LOW;
+
 int toggleSwitch_state = 0;
 int toggleSwitch_lastState = LOW;
 
@@ -78,6 +79,9 @@ int mainMenu = 1;
 boolean shortPressActive = false;
 boolean longPressActive = false;
 
+// Boolean for if a module has been chosen or not
+boolean moduleChosen = false;
+
 //Forward delaring functions
 void debounceMenuButtonPgUp();
 void debounceMenuButtonPgDn();
@@ -95,17 +99,20 @@ void updateMainMenu();
 void executeReset();
 void executeMainMenuAction();
 
-void singleModule();
-void playGame();
+void singlePlay();
+void gamePlay();
+
+void LO_func();
+void RtN_func();
+void FtS_func();
+void CtC_func();
 
 void setup() {
   Serial.begin(9600);
-  while(!Serial){
-    delay(10);
-  }
 
   lcd.init();
   lcd.backlight();
+  updateMainMenu();
 
   //Setting the pin mode for all buttons
   pinMode(menuButtonPgUp, INPUT_PULLUP);
@@ -131,12 +138,6 @@ void loop() {
   debounceMenuButtonPgDn();
   debounceMenuButtonEnter();
   debounceMenuButtonEsc();
-  
-  debounce_LO_Button();
-  debounce_RtN_Button();
-  debounce_FtS_Button();
-  debounce_CtC_Button();
-
 }
 
 void updateMainMenu(){
@@ -168,10 +169,10 @@ void executeReset(){
 void executeMainMenuAction(){
   switch(mainMenu){
     case 1:
-      singleModule();
+      singlePlay();
       break;
     case 2:
-      playGame();
+      gamePlay();
       break;
   }
 }
@@ -244,28 +245,6 @@ void debounceMenuButtonEnter(){
 }
 
 // Debounce function for Menu button "Escape"
-/*void debounceMenuButtonEsc(){
-  int menuButtonEsc_reading = digitalRead(menuButtonEsc);
-  
-  if (menuButtonEsc_reading != menuButtonEsc_lastState){
-    lastDebounceTimeMenu = millis();
-  }
-
-  if ((millis() - lastDebounceTimeMenu) > debounceDelay){
-    if (menuButtonEsc_reading != menuButtonEsc_state){
-      menuButtonEsc_state = menuButtonEsc_reading;
-      if (menuButtonEsc_state == LOW){
-        Serial.println("Escape button has been pressed");
-        executeReset();
-        updateMenu();
-        delay(100);
-      }
-    }
-  }
-
-  menuButtonEsc_lastState = menuButtonEsc_reading;
-}*/
-
 void debounceMenuButtonEsc(){
   if (digitalRead(menuButtonEsc) == HIGH) {
     if (shortPressActive == false) {
@@ -274,7 +253,7 @@ void debounceMenuButtonEsc(){
     }
     if ((millis() - lastDebounceTimeMenu > longPressDelay) && (longPressActive == false)) {
       longPressActive = true;
-      //Serial.println("Long press");
+      Serial.println("Esc button pressed: long press");
       executeReset();
       //resetFunc();
     }
@@ -283,47 +262,17 @@ void debounceMenuButtonEsc(){
       if (longPressActive == true) {
         longPressActive = false;
       } else {
-        //Serial.println("Short press");
+        Serial.println("Esc button pressed: short press");
+        moduleChosen = true;
+        digitalWrite(LO_LED, LOW);
+        digitalWrite(RtN_LED, LOW);
+        digitalWrite(FtS_LED, LOW);
+        digitalWrite(CtC_LED, LOW); 
         updateMainMenu();
+        delay(100);
       }
       shortPressActive = false;
     }
-  }
-}
-
-void LO_buttonLED_status(){
-  if(LO_LED_on){
-    LO_LED_on = false;
-  }
-  else{
-    LO_LED_on = true;
-  }
-}
-
-void RtN_buttonLED_status(){
-  if(RtN_LED_on){
-    RtN_LED_on = false;
-  }
-  else{
-    RtN_LED_on = true;
-  }
-}
-
-void FtS_buttonLED_status(){
-  if(FtS_LED_on){
-    FtS_LED_on = false;
-  }
-  else{
-    FtS_LED_on = true;
-  }
-}
-
-void CtC_buttonLED_status(){
-  if(CtC_LED_on){
-    CtC_LED_on = false;
-  }
-  else{
-    CtC_LED_on = true;
   }
 }
 
@@ -339,16 +288,15 @@ void debounce_LO_Button(){
     if (LO_reading != LO_buttonState){
       LO_buttonState = LO_reading;
       if (LO_buttonState == LOW){
-        LO_buttonLED_status();
-        if(LO_LED_on){
-          digitalWrite(LO_LED, HIGH);
-          Serial.println("\"Lights Out\" module has been chosen");
-          Serial.println("LO button light on");
-        }
-        else{
-          digitalWrite(LO_LED, LOW);
-          Serial.println("LO button light off");
-        }
+        moduleChosen = true;
+        
+        Serial.println("\"Lights Out\" module has been chosen");
+        
+        digitalWrite(LO_LED, LOW);
+        digitalWrite(RtN_LED, LOW);
+        digitalWrite(FtS_LED, LOW);
+        digitalWrite(CtC_LED, LOW);
+        LO_func();
       }
     }
   }
@@ -368,16 +316,15 @@ void debounce_RtN_Button(){
     if (RtN_reading != RtN_buttonState){
       RtN_buttonState = RtN_reading;
       if (RtN_buttonState == LOW){
-        RtN_buttonLED_status();
-        if(RtN_LED_on){
-          digitalWrite(RtN_LED, HIGH);
-          Serial.println("\"Recognize the Note\" module has been chosen");
-          Serial.println("RtN button light on");
-        }
-        else{
-          digitalWrite(RtN_LED, LOW);
-          Serial.println("RtN button light off");
-        }
+        moduleChosen = true;
+        
+        Serial.println("\"Recognize the Note\" module has been chosen");
+        
+        digitalWrite(LO_LED, LOW);
+        digitalWrite(RtN_LED, LOW);
+        digitalWrite(FtS_LED, LOW);
+        digitalWrite(CtC_LED, LOW);
+        RtN_func();
       }
     }
   }
@@ -397,16 +344,15 @@ void debounce_FtS_Button(){
     if (FtS_reading != FtS_buttonState){
       FtS_buttonState = FtS_reading;
       if (FtS_buttonState == LOW){
-        FtS_buttonLED_status();
-        if(FtS_LED_on){
-          digitalWrite(FtS_LED, HIGH);
-          Serial.println("\"Flip the Switch\" module has been chosen");
-          Serial.println("FtS button light on");
-        }
-        else{
-          digitalWrite(FtS_LED, LOW);
-          Serial.println("Fts button light off");
-        }
+        moduleChosen = true;
+        
+        Serial.println("\"Flip the Switch\" module has been chosen");
+        
+        digitalWrite(LO_LED, LOW);
+        digitalWrite(RtN_LED, LOW);
+        digitalWrite(FtS_LED, LOW);
+        digitalWrite(CtC_LED, LOW);
+        FtS_func();
       }
     }
   }
@@ -426,16 +372,15 @@ void debounce_CtC_Button(){
     if (CtC_reading != CtC_buttonState){
       CtC_buttonState = CtC_reading;
       if (CtC_buttonState == LOW){
-        CtC_buttonLED_status();
-        if(CtC_LED_on){
-          digitalWrite(CtC_LED, HIGH);
-          Serial.println("\"Crack the Code\" module has been chosen");
-          Serial.println("CtC button light on");
-        }
-        else{
-          digitalWrite(CtC_LED, LOW);
-          Serial.println("CtC button light off");
-        }
+        moduleChosen = true;
+        
+        Serial.println("\"Crack the Code\" module has been chosen");
+        
+        digitalWrite(LO_LED, LOW);
+        digitalWrite(RtN_LED, LOW);
+        digitalWrite(FtS_LED, LOW);
+        digitalWrite(CtC_LED, LOW);
+        CtC_func();
       }
     }
   }
@@ -464,10 +409,68 @@ void debounceToggleSwitch(){
   toggleSwitch_lastState = toggleSwitch_reading;
 }
 
-void singleModule(){
+void singlePlay(){
+  lcd.clear();
+  lcd.print("Pick a module");
+  lcd.setCursor(0,1);
+  lcd.print("Esc to exit");
 
+  digitalWrite(LO_LED, HIGH);
+  digitalWrite(RtN_LED, HIGH);
+  digitalWrite(FtS_LED, HIGH);
+  digitalWrite(CtC_LED, HIGH);
+  
+  while(!moduleChosen){
+    debounce_LO_Button();
+    debounce_RtN_Button();
+    debounce_FtS_Button();
+    debounce_CtC_Button();
+    debounceMenuButtonEsc();
+  }
+  moduleChosen = false;
 }
 
-void playGame(){
+void gamePlay(){
+  lcd.clear();
+  lcd.print("Pick 1st module");
+  lcd.setCursor(0,1);
+  lcd.print("Esc to exit");
 
+  digitalWrite(LO_LED, HIGH);
+  digitalWrite(RtN_LED, HIGH);
+  digitalWrite(FtS_LED, HIGH);
+  digitalWrite(CtC_LED, HIGH);
+  
+  while(!moduleChosen){
+    debounce_LO_Button();
+    debounce_RtN_Button();
+    debounce_FtS_Button();
+    debounce_CtC_Button();
+    debounceMenuButtonEsc();
+  }
+  moduleChosen = false;
+}
+
+void LO_func(){
+  moduleChosen = true;
+  Serial.println("LO function running");
+  delay(1000);
+}
+
+void RtN_func(){
+  moduleChosen = true;
+  Serial.println("RtN function running");
+  delay(1000);
+}
+
+void FtS_func(){
+  moduleChosen = true;
+  Serial.println("FtS function running");
+  delay(1000);
+}
+
+void CtC_func(){
+  moduleChosen = true;
+  Serial.println("CtC function running");
+  delay(1000);
 }

@@ -69,7 +69,7 @@ boolean CtC_LED_on = false;
 LiquidCrystal_I2C lcd(0x20, 16, 2);
 
 // Menu variable that always starts at 1
-int menu = 1;
+int mainMenu = 1;
 
 // Define the Watchdog Interrupt register manually
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
@@ -91,6 +91,10 @@ void debounce_CtC_Button();
 
 void debounceToggleSwitch();
 
+void updateMainMenu();
+void executeReset();
+void executeMainMenuAction();
+
 void singleModule();
 void playGame();
 
@@ -99,7 +103,7 @@ void setup() {
   while(!Serial){
     delay(10);
   }
-  
+
   lcd.init();
   lcd.backlight();
 
@@ -135,10 +139,10 @@ void loop() {
 
 }
 
-void updateMenu(){
-  switch(menu){
+void updateMainMenu(){
+  switch(mainMenu){
     case 0:
-      menu = 1;
+      mainMenu = 1;
       break;
     case 1:
       lcd.clear();
@@ -152,7 +156,7 @@ void updateMenu(){
       lcd.setCursor(0,1);
       lcd.print("> Play game");
     case 3:
-      menu = 2;
+      mainMenu = 2;
       break;
   }
 }
@@ -161,8 +165,8 @@ void executeReset(){
   WDT_CTRL = WDT_CTRL_ENABLE;
 }
 
-void executeAction(){
-  switch(menu){
+void executeMainMenuAction(){
+  switch(mainMenu){
     case 1:
       singleModule();
       break;
@@ -185,8 +189,8 @@ void debounceMenuButtonPgUp(){
       menuButtonPgUp_state = menuButtonPgUp_reading;
       if (menuButtonPgUp_state == LOW){
         Serial.println("Page Up button has been pressed");
-        menu--;
-        updateMenu();
+        mainMenu--;
+        updateMainMenu();
         delay(100);
       }
     }
@@ -207,8 +211,8 @@ void debounceMenuButtonPgDn(){
       menuButtonPgDn_state = menuButtonPgDn_reading;
       if (menuButtonPgDn_state == LOW){
         Serial.println("Page Down button has been pressed");
-        menu++;
-        updateMenu();
+        mainMenu++;
+        updateMainMenu();
         delay(100);
       }
     }
@@ -230,8 +234,8 @@ void debounceMenuButtonEnter(){
       menuButtonEnter_state = menuButtonEnter_reading;
       if (menuButtonEnter_state == LOW){
         Serial.println("Enter button has been pressed");
-        executeAction();
-        updateMenu();
+        executeMainMenuAction();
+        updateMainMenu();
         delay(100);
       }
     }
@@ -280,7 +284,7 @@ void debounceMenuButtonEsc(){
         longPressActive = false;
       } else {
         //Serial.println("Short press");
-        updateMenu();
+        updateMainMenu();
       }
       shortPressActive = false;
     }

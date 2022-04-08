@@ -96,6 +96,9 @@ boolean longPressActive = false;
 // Boolean for if a module has been chosen or not
 boolean moduleChosen = false;
 
+// Boolean for checking if a singlePlay is chosen or if gamePlay is chosen
+boolean playGame = false;
+
 //Forward delaring functions
 void debounceMenuButtonPgUp();
 void debounceMenuButtonPgDn();
@@ -115,6 +118,11 @@ void executeMainMenuAction();
 
 void singlePlay();
 void gamePlay();
+
+void LO_firstModule();
+void RtN_firstModule();
+void FtS_firstModule();
+void CtC_firstModule();
 
 void LO_func();
 void RtN_func();
@@ -284,6 +292,7 @@ void debounceMenuButtonEsc(){
       } else {
         Serial.println("Esc button pressed: short press");
         moduleChosen = true;
+        playGame = false;
         digitalWrite(LO_LED, LOW);
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
@@ -316,7 +325,11 @@ void debounce_LO_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
-        LO_func();
+        if (playGame){
+          LO_firstModule();
+        }else{
+          LO_func();
+        }
       }
     }
   }
@@ -344,7 +357,11 @@ void debounce_RtN_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
-        RtN_func();
+        if (playGame){
+          RtN_firstModule();
+        }else{
+          RtN_func();
+        }
       }
     }
   }
@@ -372,7 +389,12 @@ void debounce_FtS_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
-        FtS_func();
+
+        if (playGame){
+          FtS_firstModule();
+        }else{
+          FtS_func();
+        }
       }
     }
   }
@@ -400,7 +422,11 @@ void debounce_CtC_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
-        CtC_func();
+        if (playGame){
+          CtC_firstModule();
+        }else{
+          CtC_func();
+        }
       }
     }
   }
@@ -451,6 +477,7 @@ void singlePlay(){
 }
 
 void gamePlay(){
+  playGame = true;
   lcd.clear();
   lcd.print("Pick 1st module");
   lcd.setCursor(0,1);
@@ -469,6 +496,38 @@ void gamePlay(){
     debounceMenuButtonEsc();
   }
   moduleChosen = false;
+}
+
+void LO_firstModule(){
+  LO_func();
+  FtS_func();
+  CtC_func();
+  RtN_func();
+  playGame = false;
+}
+
+void RtN_firstModule(){
+  RtN_func();
+  LO_func();
+  FtS_func();
+  CtC_func();
+  playGame = false;
+}
+
+void FtS_firstModule(){
+  FtS_func();
+  CtC_func();
+  RtN_func();
+  LO_func();
+  playGame = false;
+}
+
+void CtC_firstModule(){
+  CtC_func();
+  RtN_func();
+  LO_func();
+  FtS_func();
+  playGame = false;
 }
 
 void LO_func(){
@@ -495,6 +554,7 @@ void FtS_func(){
   Wire.write(FtS);
   Wire.endTransmission();
   //requestSlave2();
+
 }
 
 void CtC_func(){
@@ -524,10 +584,10 @@ void requestSlave2(){
   if(masterReceiveSlave2 == 0){
     noSignal_1(); 
   }
-  else if(masterReceiveSlave2 == 1){
+  else if(masterReceiveSlave2 == 2){
     Serial.println("FtS module done!");
   }
-  else if(masterReceiveSlave2 == 2){
+  else if(masterReceiveSlave2 == 3){
     Serial.println("CtC module done!");
   }
 }

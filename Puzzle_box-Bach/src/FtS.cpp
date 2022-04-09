@@ -248,7 +248,7 @@ void AccelerateTimer()
   if (LoopDelay <= 200)
   {
     LoopDelay = (1000 - LoopSubtract);
-    LoopSubtract = (LoopSubtract + 50);
+    LoopSubtract = (LoopSubtract + 100);
   }
   delay(50);
 }

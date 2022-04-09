@@ -9,7 +9,7 @@
 #include <Adafruit_seesaw.h>
 #include <LiquidCrystal_I2C.h>
 
-//I2C slaves defines
+//I2C slaves defines adress
 #define RtN_Slave 0x01
 #define FtS_Slave 0x02
 
@@ -141,6 +141,7 @@ void debounceSendBuiltinLEDButtonButton(){
   }
   sendBuiltinLEDButton_lastState = sendBuiltinLEDButton_reading;
 }
+
 
 void requestSlave1(){
   //Request and wait for signal from slave

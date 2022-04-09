@@ -62,6 +62,7 @@ unsigned long       DebounceDelay           = 50;                               
 unsigned long       DebounceTimer           = 0;                                                          // Stores the current value of millis()
 unsigned long       LoopDelay               = 1000;                                                       // ticks down starting at 1000ms rate (normal speed)
 unsigned long       LoopTimer               = 0;                                                          // Stores the current value of millis()
+unsigned long       LoopSubtract            = 0;
 unsigned long       PassDebounceTimer       = 0;                                                          // Stores the current value of millis()        
 unsigned long       PassDebounceDelay       = 50;                                                         // Debounce delay after a successful toggle 
 unsigned long       ProgressBar[5]          = {0, 0, 0, 0, 0};                                            // Display the current progress on "progress inticator strip"
@@ -240,9 +241,14 @@ void AccelerateTimer()
   if (LoopDelay > 200)
   {
     MyRegister[0] = 0; 
-    LoopDelay = (LoopDelay - 25); // Timer ticks down at a faster rate after failure (wrong input)
+    LoopDelay = (LoopDelay - 50); // Timer ticks down at a faster rate after failure (wrong input)
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
+  }
+  if (LoopDelay <= 200)
+  {
+    LoopDelay = (1000 - LoopSubtract);
+    LoopSubtract = (LoopSubtract + 50);
   }
   delay(50);
 }
@@ -361,7 +367,7 @@ void DebounceWhite()
       WhiteButtonState = WhiteStateNow;
       if (WhiteButtonState == LOW)
         {
-          MyRegister[4] = 0;   //Switchen er NO, og når den er switchen ON så kobles den til jord, så vi får ingen lys i LED. Derfor er det HIGH state (siden LED da lyser) som skal registreres i koden, og brukes til å registrere at den er "PÅ", mens signalet egentlig er lavt
+          MyRegister[4] = 0;   //Switchen er NC, og når den er switchen ON så kobles den til jord, så vi får ingen lys i LED. Derfor er det HIGH state (siden LED da lyser) som skal registreres i koden, og brukes til å registrere at den er "PÅ", mens signalet egentlig er lavt
         }
       if (WhiteButtonState == HIGH) 
         {

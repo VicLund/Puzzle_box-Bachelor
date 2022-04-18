@@ -268,28 +268,17 @@ void debounceMenuButtonEnter(){
 
 // Debounce function for Menu button "Escape"
 void debounceMenuButtonEsc(){
-  if (digitalRead(menuButtonEsc) == HIGH) {
-    if (shortPressActive == false) {
-      shortPressActive = true;
-      lastDebounceTimeMenu = millis();
-    }
-    if ((millis() - lastDebounceTimeMenu > longPressDelay) && (longPressActive == false)) {
-      longPressActive = true;
-      Serial.println("Esc button pressed: long press");
-      Wire.beginTransmission(slaveAdr1);
-      Wire.write(WDT_reset);
-      Wire.endTransmission();
-      Wire.beginTransmission(slaveAdr2);
-      Wire.write(WDT_reset);
-      Wire.endTransmission();
-      executeReset();
-      //resetFunc();
-    }
-  } else {
-    if (shortPressActive == true) {
-      if (longPressActive == true) {
-        longPressActive = false;
-      } else {
+  int menuButtonEsc_reading = digitalRead(menuButtonEsc);
+  
+  if (menuButtonEsc_reading != menuButtonEsc_lastState){
+    lastDebounceTimeMenu = millis();
+  }
+
+  if ((millis() - lastDebounceTimeMenu) > debounceDelay){
+    if (menuButtonEsc_reading != menuButtonEsc_state){
+      menuButtonEsc_state = menuButtonEsc_reading;
+      if (menuButtonEsc_state == LOW){
+        Serial.println("Escape button has been pressed");
         Serial.println("Esc button pressed: short press");
         moduleChosen = true;
         playGame = false;
@@ -300,9 +289,10 @@ void debounceMenuButtonEsc(){
         updateMainMenu();
         delay(100);
       }
-      shortPressActive = false;
     }
   }
+
+  menuButtonEsc_lastState = menuButtonEsc_reading;
 }
 
 // Debounce function for module button "Lights Out"

@@ -68,7 +68,6 @@ int CtC_lastButtonState = LOW;
 
 // Declaring debounce variables
 unsigned long debounceDelay = 50;
-unsigned long longPressDelay = 3000;
 
 unsigned long lastDebounceTimeMenu = 0;
 unsigned long lastDebounceTimeModule = 0;
@@ -86,12 +85,12 @@ LiquidCrystal_I2C lcd(0x20, 16, 2);
 // Menu variable that always starts at 1
 int mainMenu = 1;
 
-// Define the Watchdog Interrupt register manually
+/*// Define the Watchdog Interrupt register manually
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
 
 // Long and short button press variables (only used for Esc button)
 boolean shortPressActive = false;
-boolean longPressActive = false;
+boolean longPressActive = false;*/
 
 // Boolean for if a module has been chosen or not
 boolean moduleChosen = false;
@@ -184,9 +183,9 @@ void updateMainMenu(){
   }
 }
 
-void executeReset(){
+/*void executeReset(){
   WDT_CTRL = WDT_CTRL_ENABLE;
-}
+}*/
 
 void executeMainMenuAction(){
   switch(mainMenu){

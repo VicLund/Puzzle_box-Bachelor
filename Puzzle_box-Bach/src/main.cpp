@@ -85,6 +85,13 @@ LiquidCrystal_I2C lcd(0x20, 16, 2);
 // Menu variable that always starts at 1
 int mainMenu = 1;
 
+//These 5 arrays paint the bars that go across the screen.  
+byte one[8] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
+byte two[8] = {0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18};
+byte three[8] = {0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C};
+byte four[8] = {0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E};
+byte five[8] = {0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F};
+
 /*// Define the Watchdog Interrupt register manually
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
 
@@ -142,6 +149,12 @@ void setup() {
   lcd.init();
   lcd.backlight();
   updateMainMenu();
+
+  lcd.createChar(1, one);
+  lcd.createChar(2, two);
+  lcd.createChar(3, three);
+  lcd.createChar(4, four);
+  lcd.createChar(5, five);
 
   //Setting the pin mode for all buttons
   pinMode(menuButtonPgUp, INPUT_PULLUP);

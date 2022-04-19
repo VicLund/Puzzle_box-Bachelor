@@ -575,6 +575,7 @@ void river(){
 
 void total(){
   if (T1 == 1 && T2 == 1 && T3 == 1){ //checks if the user has done all three melodies
+    sendToMaster = 1;
     delay(13000);
     T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
     U = 1; //when U = 1 the program knows that the user is done with this module

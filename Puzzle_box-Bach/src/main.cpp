@@ -118,10 +118,15 @@ void executeMainMenuAction();
 void singlePlay();
 void gamePlay();
 
-void LO_firstModule();
-void RtN_firstModule();
-void FtS_firstModule();
-void CtC_firstModule();
+void LO_firstModule_gamePlay();
+void RtN_firstModule_gamePlay();
+void FtS_firstModule_gamePlay();
+void CtC_firstModule_gamePlay();
+
+void LO_firstModule_singlePlay();
+void RtN_firstModule_singlePlay();
+void FtS_firstModule_singlePlay();
+void CtC_firstModule_singlePlay();
 
 void LO_func();
 void RtN_func();
@@ -315,9 +320,9 @@ void debounce_LO_Button(){
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
         if (playGame){
-          LO_firstModule();
+          LO_firstModule_gamePlay();
         }else{
-          LO_func();
+          LO_firstModule_singlePlay();
         }
       }
     }
@@ -347,9 +352,9 @@ void debounce_RtN_Button(){
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
         if (playGame){
-          RtN_firstModule();
+          RtN_firstModule_gamePlay();
         }else{
-          RtN_func();
+          RtN_firstModule_singlePlay();
         }
       }
     }
@@ -380,9 +385,9 @@ void debounce_FtS_Button(){
         digitalWrite(CtC_LED, LOW);
 
         if (playGame){
-          FtS_firstModule();
+          FtS_firstModule_gamePlay();
         }else{
-          FtS_func();
+          FtS_firstModule_singlePlay();
         }
       }
     }
@@ -412,9 +417,9 @@ void debounce_CtC_Button(){
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
         if (playGame){
-          CtC_firstModule();
+          CtC_firstModule_gamePlay();
         }else{
-          CtC_func();
+          CtC_firstModule_singlePlay();
         }
       }
     }
@@ -487,7 +492,39 @@ void gamePlay(){
   moduleChosen = false;
 }
 
-void LO_firstModule(){
+void LO_firstModule_singlePlay(){
+  lcd.clear();
+  lcd.print("Running module:");
+  lcd.setCursor(0,1);
+  lcd.print("Lights On");
+  LO_func();
+}
+
+void RtN_firstModule_singlePlay(){
+  lcd.clear();
+  lcd.print("Running module:");
+  lcd.setCursor(0,1);
+  lcd.print("Rec. the Note");
+  RtN_func();
+}
+
+void FtS_firstModule_singlePlay(){
+  lcd.clear();
+  lcd.print("Running module:");
+  lcd.setCursor(0,1);
+  lcd.print("Flip the Switch");
+  FtS_func();
+}
+
+void CtC_firstModule_singlePlay(){
+  lcd.clear();
+  lcd.print("Running module:");
+  lcd.setCursor(0,1);
+  lcd.print("Crack the Code");
+  CtC_func();
+}
+
+void LO_firstModule_gamePlay(){
   LO_func();
   FtS_func();
   CtC_func();
@@ -495,7 +532,7 @@ void LO_firstModule(){
   playGame = false;
 }
 
-void RtN_firstModule(){
+void RtN_firstModule_gamePlay(){
   RtN_func();
   LO_func();
   FtS_func();
@@ -503,7 +540,7 @@ void RtN_firstModule(){
   playGame = false;
 }
 
-void FtS_firstModule(){
+void FtS_firstModule_gamePlay(){
   FtS_func();
   CtC_func();
   RtN_func();
@@ -511,7 +548,7 @@ void FtS_firstModule(){
   playGame = false;
 }
 
-void CtC_firstModule(){
+void CtC_firstModule_gamePlay(){
   CtC_func();
   RtN_func();
   LO_func();

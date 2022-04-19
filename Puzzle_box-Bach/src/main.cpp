@@ -133,6 +133,9 @@ void RtN_func();
 void FtS_func();
 void CtC_func();
 
+void updateProgressBar(unsigned long, unsigned long, int);
+void progressBar_startStopPoint(int, int);
+
 void setup() {
   Serial.begin(9600);
 
@@ -498,6 +501,12 @@ void LO_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Lights On");
   LO_func();
+  lcd.clear();
+  lcd.print("Congratulations!");
+  lcd.setCursor(0,1);
+  lcd.print("Module Complete");
+  delay(1000);
+  updateMainMenu();
 }
 
 void RtN_firstModule_singlePlay(){
@@ -506,6 +515,12 @@ void RtN_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Rec. the Note");
   RtN_func();
+  lcd.clear();
+  lcd.print("Congratulations!");
+  lcd.setCursor(0,1);
+  lcd.print("Module Complete");
+  delay(1000);
+  updateMainMenu();
 }
 
 void FtS_firstModule_singlePlay(){
@@ -514,6 +529,12 @@ void FtS_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Flip the Switch");
   FtS_func();
+  lcd.clear();
+  lcd.print("Congratulations!");
+  lcd.setCursor(0,1);
+  lcd.print("Module Complete");
+  delay(1000);
+  updateMainMenu();
 }
 
 void CtC_firstModule_singlePlay(){
@@ -522,37 +543,67 @@ void CtC_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Crack the Code");
   CtC_func();
+  lcd.clear();
+  lcd.print("Congratulations!");
+  lcd.setCursor(0,1);
+  lcd.print("Module Complete");
+  delay(1000);
+  updateMainMenu();
 }
 
 void LO_firstModule_gamePlay(){
+  lcd.clear();
+  lcd.print("0 %");
   LO_func();
+  progressBar_startStopPoint(0, 25);
   FtS_func();
+  progressBar_startStopPoint(25, 50);
   CtC_func();
+  progressBar_startStopPoint(50, 75);
   RtN_func();
+  progressBar_startStopPoint(75, 100);
   playGame = false;
 }
 
 void RtN_firstModule_gamePlay(){
+  lcd.clear();
+  lcd.print("0 %");
   RtN_func();
+  progressBar_startStopPoint(0, 25);
   LO_func();
+  progressBar_startStopPoint(25, 50);
   FtS_func();
+  progressBar_startStopPoint(50, 75);
   CtC_func();
+  progressBar_startStopPoint(75, 100);
   playGame = false;
 }
 
 void FtS_firstModule_gamePlay(){
+  lcd.clear();
+  lcd.print("0 %");
   FtS_func();
+  progressBar_startStopPoint(0, 25);
   CtC_func();
+  progressBar_startStopPoint(25, 50);
   RtN_func();
+  progressBar_startStopPoint(50, 75);
   LO_func();
+  progressBar_startStopPoint(75, 100);
   playGame = false;
 }
 
 void CtC_firstModule_gamePlay(){
+  lcd.clear();
+  lcd.print("0 %");
   CtC_func();
+  progressBar_startStopPoint(0, 25);
   RtN_func();
+  progressBar_startStopPoint(25, 50);
   LO_func();
+  progressBar_startStopPoint(50, 75);
   FtS_func();
+  progressBar_startStopPoint(75, 100);
   playGame = false;
 }
 
@@ -569,7 +620,7 @@ void RtN_func(){
   Wire.beginTransmission(slaveAdr1);
   Wire.write(RtN);
   Wire.endTransmission();
-  //requestSlave1();
+  requestSlave1();
 }
 
 void FtS_func(){
@@ -579,7 +630,7 @@ void FtS_func(){
   Wire.beginTransmission(slaveAdr2);
   Wire.write(FtS);
   Wire.endTransmission();
-  //requestSlave2();
+  requestSlave2();
 
 }
 
@@ -590,14 +641,14 @@ void CtC_func(){
   Wire.beginTransmission(slaveAdr2);
   Wire.write(CtC);
   Wire.endTransmission();
-  //requestSlave2();
+  requestSlave2();
 }
 
-/*void requestSlave1(){
+void requestSlave1(){
   Wire.requestFrom(slaveAdr1, 1);
     masterReceiveSlave1 = Wire.read();
   if(masterReceiveSlave1 == 0){
-    noSignal_1(); 
+    noSignal_slave1(); 
   }
   else if(masterReceiveSlave1 == 1){
     Serial.println("RtN module done!");
@@ -608,7 +659,7 @@ void requestSlave2(){
   Wire.requestFrom(slaveAdr2, 1);
   masterReceiveSlave2 = Wire.read();
   if(masterReceiveSlave2 == 0){
-    noSignal_1(); 
+    noSignal_slave2(); 
   }
   else if(masterReceiveSlave2 == 2){
     Serial.println("FtS module done!");
@@ -625,4 +676,29 @@ void noSignal_slave1(){
 void noSignal_slave2(){
   requestSlave2();
 }
-*/
+
+void progressBar_startStopPoint(int pb_startPoint, int pb_stopPoint){
+  for(int i = pb_startPoint; i <= pb_stopPoint; i++){
+    lcd.setCursor(0,0);
+    lcd.print(i);
+    lcd.print(" %"); 
+    lcd.print("   ");
+    updateProgressBar(i, 100, 1);
+    delay(100);
+  }
+}
+
+// Not own code, taken from: https://www.instructables.com/Simple-Progress-Bar-for-Arduino-and-LCD/
+void updateProgressBar(unsigned long count, unsigned long totalCount, int lineToPrintOn){
+  double factor = totalCount/80.0;          
+  int percent = (count+1)/factor;
+  int number = percent/5;
+  int remainder = percent%5;
+  if(number > 0)
+  {
+    lcd.setCursor(number-1,lineToPrintOn);
+    lcd.write(5);
+  }
+  lcd.setCursor(number,lineToPrintOn);
+  lcd.write(remainder);
+}

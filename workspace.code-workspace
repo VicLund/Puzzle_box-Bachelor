@@ -7,6 +7,10 @@
 		{
 			"name": "File_for_testing_ELE301_code",
 			"path": "..\\..\\..\\..\\PlatformIO\\Projects\\File_for_testing_ELE301_code"
+		},
+		{
+			"name": "Testing code",
+			"path": "..\\..\\..\\Documents\\PlatformIO\\Projects\\Testing code"
 		}
 	],
 	"settings": {}

@@ -135,6 +135,11 @@ void RtN_firstModule_singlePlay();
 void FtS_firstModule_singlePlay();
 void CtC_firstModule_singlePlay();
 
+void noSignal_slave1();
+void noSignal_slave2();
+void requestSlave1();
+void requestSlave2();
+
 void LO_func();
 void RtN_func();
 void FtS_func();

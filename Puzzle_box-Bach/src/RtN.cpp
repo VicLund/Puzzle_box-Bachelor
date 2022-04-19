@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
+#include "Wire.h"
 
 //set the pins for the different buttons
 const int up = 2;
@@ -103,6 +104,15 @@ unsigned long debounceDelay = 30;
 unsigned long lastDebounceTimeNote = 0;
 
 DFRobotDFPlayerMini myDFPlayer;
+
+//Define variable to receive
+byte receiveFromMaster = 0;
+
+//Define variable to send
+byte sendToMaster = 0;
+
+//Checking to make sure that the function is actually done
+boolean melodiesFinished = false;
 
 void debounceup(){
   int up_reading = digitalRead(up);
@@ -568,13 +578,41 @@ void total(){
     delay(13000);
     T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
     U = 1; //when U = 1 the program knows that the user is done with this module
+    melodiesFinished = true;
     }
   }
+
+void receiveEvent(int) {
+  receiveFromMaster = Wire.read();
+  if (receiveFromMaster == 1) {
+    Serial.println("RtN running - Builtin LED turning on");
+    myDFPlayer.play(13);  //Play the first melody
+  }
+}
+
+void requestEvent() {
+  while(melodiesFinished) {
+    if (sendToMaster == 0) {
+      Serial.println("Sent 'No Signal' to Master");
+      Wire.write(sendToMaster);
+    }
+    else if (sendToMaster == 1) {
+      Serial.println("Sent 'Finished RtN' to Master");
+      Wire.write(sendToMaster);
+      sendToMaster = 0;
+    }
+    melodiesFinished = false;
+  }
+}
 
 void setup()
 {
   Serial1.begin(9600);
   Serial.begin(115200);
+
+  Wire.begin(0x01);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
   
   pinMode(up, INPUT_PULLUP);
   pinMode(down, INPUT_PULLUP);
@@ -590,7 +628,6 @@ void setup()
   pinMode(C, INPUT_PULLUP);
 
   myDFPlayer.volume(volume);  //Set volume value to the volume int
-  myDFPlayer.play(13);  //Play the first melody
 }
 
 void loop()

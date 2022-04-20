@@ -43,6 +43,10 @@ const int CtC_LED = 5;
 //Variable for toggle switch
 const int toggle_switch = 9;
 
+//Variables for LED strip
+#define LEDpin 6
+#define numPixels 92
+
 // Current button state and last button state variables for menu buttons
 int menuButtonPgUp_state;
 int menuButtonPgUp_lastState = LOW;
@@ -81,6 +85,9 @@ boolean CtC_LED_on = false;
 
 // Set the LCD address to 0x20 for a 16x02 display
 LiquidCrystal_I2C lcd(0x20, 16, 2);
+
+//Set up LED strip, with # of pixels, pin #, and type
+Adafruit_NeoPixel strip(numPixels, LEDpin, NEO_GRB + NEO_KHZ800);
 
 // Menu variable that always starts at 1
 int mainMenu = 1;
@@ -121,7 +128,7 @@ void debounce_CtC_Button();
 void debounceToggleSwitch();
 
 void updateMainMenu();
-void executeReset();
+void startUpLights();
 void executeMainMenuAction();
 
 void singlePlay();
@@ -157,6 +164,11 @@ void setup() {
   lcd.backlight();
   updateMainMenu();
 
+  strip.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  strip.show();            // Turn OFF all pixels ASAP
+  strip.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
+  startUpLights();
+
   lcd.createChar(1, one);
   lcd.createChar(2, two);
   lcd.createChar(3, three);
@@ -189,6 +201,14 @@ void loop() {
   debounceMenuButtonEsc();
 }
 
+void startUpLights(){
+  for(int i = 0; i < numPixels; i++){
+    strip.setPixelColor(i, strip.Color(255, 255, 255));
+    strip.show();
+    delay(100);
+  }
+}
+
 void updateMainMenu(){
   switch(mainMenu){
     case 0:
@@ -211,9 +231,6 @@ void updateMainMenu(){
   }
 }
 
-/*void executeReset(){
-  WDT_CTRL = WDT_CTRL_ENABLE;
-}*/
 
 void executeMainMenuAction(){
   switch(mainMenu){

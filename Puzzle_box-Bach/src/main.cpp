@@ -18,7 +18,7 @@
 int RtN = 1;
 int FtS = 2;
 int CtC = 3;
-int WDT_reset = 9;
+//int WDT_reset = 9;
 
 //Define a variable to receive
 byte masterReceiveSlave1;
@@ -46,6 +46,7 @@ const int toggle_switch = 9;
 //Variables for LED strip
 #define LEDpin 6
 #define numPixels 92
+int brightness = 50;
 
 // Current button state and last button state variables for menu buttons
 int menuButtonPgUp_state;
@@ -72,7 +73,7 @@ int CtC_lastButtonState = LOW;
 
 // Declaring debounce variables
 unsigned long debounceDelay = 50;
-unsigned long longPressDelay = 3000;
+//unsigned long longPressDelay = 3000;
 
 unsigned long lastDebounceTimeMenu = 0;
 unsigned long lastDebounceTimeModule = 0;
@@ -100,12 +101,12 @@ byte three[8] = {0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C};
 byte four[8] = {0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E};
 byte five[8] = {0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F};
 
-// Define the Watchdog Interrupt register manually
+/*// Define the Watchdog Interrupt register manually
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
 
 // Long and short button press variables (only used for Esc button)
 boolean shortPressActive = false;
-boolean longPressActive = false;
+boolean longPressActive = false;*/
 
 // Boolean for if a module has been chosen or not
 boolean moduleChosen = false;
@@ -168,7 +169,7 @@ void setup() {
 
   strip.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
-  strip.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
+  strip.setBrightness(brightness); // Set BRIGHTNESS to about 1/5 (max = 255)
   startUpLights();
 
   lcd.createChar(1, one);
@@ -207,13 +208,25 @@ void startUpLights(){
   for(int i = 0; i < numPixels; i++){
     strip.setPixelColor(i, strip.Color(255, 255, 255));
     strip.show();
-    delay(100);
+    delay(30);
+  }
+  for(int j = brightness; j >= 0; j--){
+    strip.setBrightness(j);
+    strip.fill(strip.Color(255, 255, 255), 0, numPixels);
+    strip.show();
+    delay(20);
+  }
+  for(int k = 0; k < brightness; k++){
+    strip.setBrightness(k);
+    strip.fill(strip.Color(255, 255, 255), 0, numPixels);
+    strip.show();
+    delay(20);
   }
 }
 
-void executeReset(){
+/*void executeReset(){
   WDT_CTRL = WDT_CTRL_ENABLE;
-}
+}*/
 
 void updateMainMenu(){
   switch(mainMenu){
@@ -317,7 +330,7 @@ void debounceMenuButtonEnter(){
 }
 
 // Debounce function for Menu button "Escape"
-/*void debounceMenuButtonEsc(){
+void debounceMenuButtonEsc(){
   int menuButtonEsc_reading = digitalRead(menuButtonEsc);
   
   if (menuButtonEsc_reading != menuButtonEsc_lastState){
@@ -343,44 +356,6 @@ void debounceMenuButtonEnter(){
   }
 
   menuButtonEsc_lastState = menuButtonEsc_reading;
-}*/
-
-void debounceMenuButtonEsc(){
-  if (digitalRead(menuButtonEsc) == HIGH) {
-    if (shortPressActive == false) {
-      shortPressActive = true;
-      lastDebounceTimeMenu = millis();
-    }
-    if ((millis() - lastDebounceTimeMenu > longPressDelay) && (longPressActive == false)) {
-      longPressActive = true;
-      Serial.println("Esc button pressed: long press");
-      Wire.beginTransmission(slaveAdr1);
-      Wire.write(WDT_reset);
-      Wire.endTransmission();
-      Wire.beginTransmission(slaveAdr2);
-      Wire.write(WDT_reset);
-      Wire.endTransmission();
-      executeReset();
-      //resetFunc();
-    }
-  } else {
-    if (shortPressActive == true) {
-      if (longPressActive == true) {
-        longPressActive = false;
-      } else {
-        Serial.println("Esc button pressed: short press");
-        moduleChosen = true;
-        playGame = false;
-        digitalWrite(LO_LED, LOW);
-        digitalWrite(RtN_LED, LOW);
-        digitalWrite(FtS_LED, LOW);
-        digitalWrite(CtC_LED, LOW); 
-        updateMainMenu();
-        delay(100);
-      }
-      shortPressActive = false;
-    }
-  }
 }
 
 // Debounce function for module button "Lights Out"
@@ -403,6 +378,8 @@ void debounce_LO_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
+        strip.clear();
+        strip.show();
         if (playGame){
           LO_firstModule_gamePlay();
         }else{
@@ -435,6 +412,8 @@ void debounce_RtN_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
+        strip.clear();
+        strip.show();
         if (playGame){
           RtN_firstModule_gamePlay();
         }else{
@@ -467,7 +446,8 @@ void debounce_FtS_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
-
+        strip.clear();
+        strip.show();
         if (playGame){
           FtS_firstModule_gamePlay();
         }else{
@@ -500,6 +480,8 @@ void debounce_CtC_Button(){
         digitalWrite(RtN_LED, LOW);
         digitalWrite(FtS_LED, LOW);
         digitalWrite(CtC_LED, LOW);
+        strip.clear();
+        strip.show();
         if (playGame){
           CtC_firstModule_gamePlay();
         }else{
@@ -586,7 +568,9 @@ void LO_firstModule_singlePlay(){
   lcd.print("Congratulations!");
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
-  delay(1000);
+  delay(3000);
+  strip.fill(strip.Color(255, 255, 255), 0, numPixels);
+  strip.show();
   updateMainMenu();
 }
 
@@ -601,6 +585,8 @@ void RtN_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
   delay(3000);
+  strip.fill(strip.Color(255, 255, 255), 0, numPixels);
+  strip.show();
   updateMainMenu();
 }
 
@@ -615,6 +601,8 @@ void FtS_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
   delay(3000);
+  strip.fill(strip.Color(255, 255, 255), 0, numPixels);
+  strip.show();
   updateMainMenu();
 }
 
@@ -629,6 +617,8 @@ void CtC_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
   delay(3000);
+  strip.fill(strip.Color(255, 255, 255), 0, numPixels);
+  strip.show();
   updateMainMenu();
 }
 
@@ -714,8 +704,10 @@ void FtS_func(){
   Wire.beginTransmission(slaveAdr2);
   Wire.write(FtS);
   Wire.endTransmission();
-  requestSlave2();
-
+  while(!moduleFinished){
+    requestSlave2();
+  }
+  moduleFinished = false;
 }
 
 void CtC_func(){
@@ -741,15 +733,16 @@ void requestSlave1(){
 void requestSlave2(){
   Wire.requestFrom(slaveAdr2, 1);
   masterReceiveSlave2 = Wire.read();
-  if(masterReceiveSlave2 == 0){
+  /*if(masterReceiveSlave2 == 0){
     noSignal_slave2(); 
-  }
-  else if(masterReceiveSlave2 == 2){
+  }*/
+  if(masterReceiveSlave2 == 2){
     Serial.println("FtS module done!");
   }
   else if(masterReceiveSlave2 == 3){
     Serial.println("CtC module done!");
   }
+  delay(2000);
 }
 
 void noSignal_slave1(){

@@ -105,6 +105,8 @@ boolean moduleChosen = false;
 // Boolean for checking if a singlePlay is chosen or if gamePlay is chosen
 boolean playGame = false;
 
+boolean moduleFinished = false;
+
 //Forward delaring functions
 void debounceMenuButtonPgUp();
 void debounceMenuButtonPgDn();
@@ -638,7 +640,10 @@ void RtN_func(){
   Wire.beginTransmission(slaveAdr1);
   Wire.write(RtN);
   Wire.endTransmission();
-  requestSlave1();
+  while(!moduleFinished){
+    requestSlave1();
+  }
+  moduleFinished = false;
 }
 
 void FtS_func(){
@@ -671,6 +676,7 @@ void requestSlave1(){
     }*/
     if(masterReceiveSlave1 == 1){
       Serial.println("RtN module done!");
+      moduleFinished = true;
       break;
     }
     delay(5000);

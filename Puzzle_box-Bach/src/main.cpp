@@ -539,7 +539,7 @@ void RtN_firstModule_singlePlay(){
   lcd.print("Congratulations!");
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
-  delay(1000);
+  delay(3000);
   updateMainMenu();
 }
 
@@ -553,7 +553,7 @@ void FtS_firstModule_singlePlay(){
   lcd.print("Congratulations!");
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
-  delay(1000);
+  delay(3000);
   updateMainMenu();
 }
 
@@ -567,7 +567,7 @@ void CtC_firstModule_singlePlay(){
   lcd.print("Congratulations!");
   lcd.setCursor(0,1);
   lcd.print("Module Complete");
-  delay(1000);
+  delay(3000);
   updateMainMenu();
 }
 

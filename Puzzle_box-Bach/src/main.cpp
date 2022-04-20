@@ -663,13 +663,17 @@ void CtC_func(){
 }
 
 void requestSlave1(){
-  Wire.requestFrom(slaveAdr1, 1);
+  for(int i = 0; i < 20; i++){
+    Wire.requestFrom(slaveAdr1, 1);
     masterReceiveSlave1 = Wire.read();
-  if(masterReceiveSlave1 == 0){
-    noSignal_slave1(); 
-  }
-  else if(masterReceiveSlave1 == 1){
-    Serial.println("RtN module done!");
+    /*if(masterReceiveSlave1 == 0){
+      noSignal_slave1(); 
+    }*/
+    if(masterReceiveSlave1 == 1){
+      Serial.println("RtN module done!");
+      break;
+    }
+    delay(5000);
   }
 }
 

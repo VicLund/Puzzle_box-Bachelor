@@ -731,3 +731,90 @@ void loop()
     printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
   }
 }
+
+/*void total(){
+  if (T1 == 1 && T2 == 1 && T3 == 1){ //checks if the user has done all three melodies
+    sendToMaster = 1;
+    delay(13000);
+    T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
+    U = 1; //when U = 1 the program knows that the user is done with this module
+    melodiesFinished = true;
+    }
+  }
+
+void playRtN(){
+  sendToMaster = 1;
+  myDFPlayer.play(13);  //Play the first melody
+  while (!melodiesFinished){
+    debounceup(); //button for volume up
+    debouncedown(); //button for volume down
+    debounceplay(); //button for replaying the melody
+    
+    debouncec(); //button for low c note
+    debounceD(); //button for D note
+    debounceE(); //button for E note
+    debounceF(); //button for F note
+    debounceG(); //button for G note
+    debounceA(); //button for A note
+    debounceB(); //button for B note
+    debounceC(); //button for high C note
+    
+    twinkle(); //check for first melody
+    yankee(); //check for second melody
+    river(); //check for third melody
+    total(); //check for all melodies
+  }
+}
+
+void receiveEvent(int) {
+  receiveFromMaster = Wire.read();
+  if (receiveFromMaster == 1) {
+    //Serial.println("RtN running - Builtin LED turning on");
+    playRtN();
+  }
+}
+
+void requestEvent() {
+  while(melodiesFinished) {
+    if (sendToMaster == 0) {
+      //Serial.println("Sent 'No Signal' to Master");
+      Wire.write(sendToMaster);
+    }
+    else if (sendToMaster == 1) {
+      //Serial.println("Sent 'Finished RtN' to Master");
+      Wire.write(sendToMaster);
+      sendToMaster = 0;
+    }
+    melodiesFinished = false;
+  }
+}
+
+void setup()
+{
+  Serial.begin(9600);
+  Serial1.begin(9600);
+
+  Wire.begin(0x01);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
+  
+  pinMode(up, INPUT_PULLUP);
+  pinMode(down, INPUT_PULLUP);
+  pinMode(play, INPUT_PULLUP);
+
+  pinMode(A, INPUT_PULLUP);
+  pinMode(B, INPUT_PULLUP);
+  pinMode(c, INPUT_PULLUP);
+  pinMode(D, INPUT_PULLUP);
+  pinMode(E, INPUT_PULLUP);
+  pinMode(F, INPUT_PULLUP);
+  pinMode(G, INPUT_PULLUP);
+  pinMode(C, INPUT_PULLUP);
+
+  myDFPlayer.volume(volume);  //Set volume value to the volume int
+}
+
+void loop()
+{ 
+
+}*/

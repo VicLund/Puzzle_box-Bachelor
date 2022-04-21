@@ -128,6 +128,33 @@ byte sendToMaster = 0;
 //Checking to make sure that the function is actually done
 boolean melodiesFinished = false;
 
+void clearLEDs();
+
+void receiveEvent(int);
+void requestEvent();
+
+void debounceup();
+void debouncedown();
+void debounceplay();
+
+void debouncec();
+void debounceD();
+void debounceE();
+void debounceF();
+void debounceG();
+void debounceA();
+void debounceB();
+void debounceC();
+
+void twinkle();
+void yankee();
+void river();
+void total();
+
+void playRtN();
+
+void printDetail(uint8_t type, int value);
+
 void setup()
 {
   Serial1.begin(9600);
@@ -295,7 +322,6 @@ void debounceplay(){
   }
   play_lastState = play_reading;
 }
-
 
 void debouncec(){ 
   int c_reading = digitalRead(c);
@@ -694,7 +720,6 @@ void total(){
     sendToMaster = 1;
     }
   }
-
 
 void playRtN(){
   

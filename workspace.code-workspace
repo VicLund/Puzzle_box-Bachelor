@@ -5,12 +5,17 @@
 			"path": "Puzzle_box-Bach"
 		},
 		{
+<<<<<<< HEAD
 			"name": "File_for_testing_ELE301_code",
 			"path": "..\\..\\..\\..\\PlatformIO\\Projects\\File_for_testing_ELE301_code"
 		},
 		{
 			"name": "Testing code",
 			"path": "..\\..\\..\\Documents\\PlatformIO\\Projects\\Testing code"
+=======
+			"name": "Test_file_ELE301_Uno",
+			"path": "..\\..\\..\\PlatformIO\\Projects\\Test_file_ELE301_Uno"
+>>>>>>> ccca062e5b352932a61a85d280a0b57e8e3a1a35
 		}
 	],
 	"settings": {}

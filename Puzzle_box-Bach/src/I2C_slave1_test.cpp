@@ -9,10 +9,6 @@
 #include <Adafruit_seesaw.h>
 #include <LiquidCrystal_I2C.h>
 
-//LED strip defines
-#define PIN 6
-#define NUM_LEDS 92
-
 //Define variable to receive
 byte receiveFromMaster = 0;
 
@@ -25,10 +21,7 @@ boolean lightsFinished = false;
 //Forward declare functions
 void receiveEvent(int);
 void requestEvent();
-void redLight();
-void blueLight();
-
-Adafruit_NeoPixel pixels(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+void builtinLED_RtN();
 
 void setup() {
   Serial.begin(9600);
@@ -37,26 +30,24 @@ void setup() {
   Wire.begin(0x01);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
-
-  //NeoPixel setup
-  pixels.begin();
-  pixels.clear();
-  pixels.show();
 }
 
 void loop() {
-
+  /*int time = millis()/1000;
+  
+  //print the time from last reset
+  Serial.print("I was reset ");
+  Serial.print(time);
+  Serial.println(" seconds ago.");
+  Serial.println("Will you stop Dave. I am afraid.");
+  delay(1000);*/
 }
 
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
   if (receiveFromMaster == 1) {
-    Serial.println("Red light turning on");
-    redLight();
-  }
-  else if (receiveFromMaster == 2) {
-    Serial.println("Blue light turning on");
-    blueLight();
+    Serial.println("RtN running - Builtin LED turning on");
+    builtinLED_RtN();
   }
 }
 
@@ -67,12 +58,7 @@ void requestEvent() {
       Wire.write(sendToMaster);
     }
     else if (sendToMaster == 1) {
-      Serial.println("Sent 'Red finished' to Master");
-      Wire.write(sendToMaster);
-      sendToMaster = 0;
-    }
-    else if (sendToMaster == 2) {
-      Serial.println("Sent 'Blue finished' to Master");
+      Serial.println("Sent 'Finished RtN' to Master");
       Wire.write(sendToMaster);
       sendToMaster = 0;
     }
@@ -80,53 +66,19 @@ void requestEvent() {
   }
 }
 
-void redLight() {
+void builtinLED_RtN() {
   sendToMaster = 1;
-  pixels.clear();
-  for (int i = 0; i < NUM_LEDS; i++) {
-    pixels.setPixelColor(i, pixels.Color(255, 0, 0));
-    pixels.show();
-  }
-  delay(1000);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    pixels.setPixelColor(i, pixels.Color(0, 0, 0));
-    pixels.show();
-  }
-  delay(1000);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    pixels.setPixelColor(i, pixels.Color(255, 0, 0));
-    pixels.show();
-  }
-  delay(1000);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    pixels.setPixelColor(i, pixels.Color(0, 0, 0));
-    pixels.show();
-  }
-  delay(1000);
-  lightsFinished = true;
-}
-
-void blueLight() {
-  sendToMaster = 2;
-  pixels.clear();
-  for (int j = 0; j < NUM_LEDS; j++) {
-    pixels.setPixelColor(j, pixels.Color(0, 0, 255));
-    pixels.show();
-  }
-  delay(1000);
-  for (int j = 0; j < NUM_LEDS; j++) {
-    pixels.setPixelColor(j, pixels.Color(0, 0, 0));
-    pixels.show();
-  }
-  delay(1000);
-  for (int j = 0; j < NUM_LEDS; j++) {
-    pixels.setPixelColor(j, pixels.Color(0, 0, 255));
-    pixels.show();
-  }
-  delay(1000);
-  for (int j = 0; j < NUM_LEDS; j++) {
-    pixels.setPixelColor(j, pixels.Color(0, 0, 0));
-    pixels.show();
+  int n = 30;
+  for(int i = 0; i < n; i++){
+    Serial.print("RtN Lights have blinked: ");
+    Serial.print(i+1);
+    Serial.print(" times. Total blinks is ");
+    Serial.println(n);
+    
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(2000);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(2000);
   }
   delay(1000);
   lightsFinished = true;

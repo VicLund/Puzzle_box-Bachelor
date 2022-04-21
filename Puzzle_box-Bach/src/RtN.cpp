@@ -1,6 +1,10 @@
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
 #include "Wire.h"
+#include "Adafruit_NeoPixel.h"
+
+#define LED_COUNT_Progress  4                                               // How many NeoPixels are attached to the Arduino?
+#define BRIGHTNESS 50                                                       // NeoPixel brightness, 0 (min) to 255 (max)
 
 //set the pins for the different buttons
 const int up = 2;
@@ -15,6 +19,8 @@ const int G = A4;
 const int A = A5;
 const int B = A6;
 const int C = 0;
+
+const int LedStripProgressPin = 5;
 
 int up_state;
 int up_lastState = LOW;
@@ -96,12 +102,19 @@ int T3 = 0;
 
 //Variable to know if user is done
 int U = 0;
+int V = 0;
 
 //set the volume to starter value (between 0 and 30)
-int volume = 1;
+int volume = 10;
 
 unsigned long debounceDelay = 30;
 unsigned long lastDebounceTimeNote = 0;
+
+Adafruit_NeoPixel stripProgress(LED_COUNT_Progress, LedStripProgressPin, NEO_RGB + NEO_KHZ800);
+// Argument 1 = Number of pixels in NeoPixel strip
+// Argument 2 = Arduino pin number (most are valid)
+// Argument 3 = Pixel type flags, add together as needed:
+
 
 DFRobotDFPlayerMini myDFPlayer;
 void printDetail(uint8_t type, int value);
@@ -115,15 +128,87 @@ byte sendToMaster = 0;
 //Checking to make sure that the function is actually done
 boolean melodiesFinished = false;
 
+void setup()
+{
+  Serial1.begin(9600);
+  Serial.begin(115200);
+
+  Wire.begin(0x01);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
+  
+  pinMode(up, INPUT_PULLUP);
+  pinMode(down, INPUT_PULLUP);
+  pinMode(play, INPUT_PULLUP);
+
+  pinMode(A, INPUT_PULLUP);
+  pinMode(B, INPUT_PULLUP);
+  pinMode(c, INPUT_PULLUP);
+  pinMode(D, INPUT_PULLUP);
+  pinMode(E, INPUT_PULLUP);
+  pinMode(F, INPUT_PULLUP);
+  pinMode(G, INPUT_PULLUP);
+  pinMode(C, INPUT_PULLUP);
+
+  pinMode(LedStripProgressPin, OUTPUT);
+  stripProgress.begin();
+  stripProgress.setBrightness(BRIGHTNESS); 
+  stripProgress.show();
+  
+  Serial.println();
+  Serial.println(F("DFRobot DFPlayer Mini Demo"));
+  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+  
+  if (!myDFPlayer.begin(Serial1)) {  //Use softwareSerial to communicate with mp3.
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    while(true){
+      delay(0); // Code to compatible with ESP8266 watch dog.
+    }
+  }
+  Serial.println(F("DFPlayer Mini online."));
+  
+  myDFPlayer.volume(volume);  //Set volume value to the volume int
+  myDFPlayer.play(19);
+  delay(5100);
+  myDFPlayer.stop();
+}
+
+void loop()
+{ 
+  debounceup();
+  debouncedown();
+  if (U == 1) {
+    playRtN();
+  }
+  if (V == 1){
+    clearLEDs();
+  }
+}
+
+void clearLEDs(){
+    delay(13500);
+    stripProgress.clear();
+    stripProgress.show();
+    V = 0;
+}
+
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
   if (receiveFromMaster == 1) {
     Serial.println("RtN running - Builtin LED turning on");
-    myDFPlayer.play(13);  //Play the first melody
+    U = 1;
+  }
+  if (receiveFromMaster == 9) {
+    Serial.println("RtN running - Builtin LED turning on");
+    U = 9;
   }
 }
 
 void requestEvent() {
+  Serial.println(sendToMaster);
+  Serial.println(melodiesFinished);
   while(melodiesFinished) {
     if (sendToMaster == 0) {
       Serial.println("Sent 'No Signal' to Master");
@@ -135,6 +220,7 @@ void requestEvent() {
       sendToMaster = 0;
     }
     melodiesFinished = false;
+    Serial.println("in request event");
   }
 }
 
@@ -210,6 +296,7 @@ void debounceplay(){
   play_lastState = play_reading;
 }
 
+
 void debouncec(){ 
   int c_reading = digitalRead(c);
 
@@ -227,15 +314,6 @@ void debouncec(){
         }
         else if (R13 == 1 and R14 == 0){
           R14 = 1;
-        }
-        else if (Z5 == 1 and Z6 == 0){
-          Z6 = 1;
-        }
-        else if (Z8 == 1 and Z9 == 0){
-          Z9 = 1;
-        }
-        else if (Z10 == 1 and Z11 == 0){
-          Z11 = 1;
         }
         else{
           R1 = 1, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -272,8 +350,8 @@ void debounceD(){
         else if (R12 == 1 and R13 == 0){
           R13 = 1;
         } 
-        else if (Z15 == 1 and Z16 == 0){
-          Z16 = 1;
+        else if (Z12 == 1 and Z13 == 0){
+          Z13 = 1;
         }
         else if (S7 == 1 and S8 == 0){
           S8 = 1;
@@ -314,11 +392,11 @@ void debounceE(){
         else if (R10 == 1 and R11 == 0){
           R11 = 1;
         }
+        else if (Z8 == 1 and Z9 == 0){
+          Z9 = 1;
+        }
         else if (Z11 == 1 and Z12 == 0){
           Z12 = 1;
-        }
-        else if (Z14 == 1 and Z15 == 0){
-          Z15 = 1;
         }
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -356,11 +434,11 @@ void debounceF(){
         else if (R8 == 1 and R9 == 0){
           R9 = 1;
         }
+        else if (Z7 == 1 and Z8 == 0){
+          Z8 = 1;
+        }
         else if (Z9 == 1 and Z10 == 0){
           Z10 = 1;
-        }
-        else if (Z12 == 1 and Z13 == 0){
-          Z13 = 1;
         }
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -401,11 +479,11 @@ void debounceG(){
         else if (R6 == 1 and R7 == 0){
           R7 = 1;
         }
-        else if (Z6 == 1 and Z7 == 0){
-          Z7 = 1;
+        else if (Z5 == 1 and Z6 == 0){
+          Z6 = 1;
         }
-        else if (Z13 == 1 and Z14 == 0){
-          Z14 = 1;
+        else if (Z10 == 1 and Z11 == 0){
+          Z11 = 1;
         }
         else if (S1 == 1 and S2 == 0){
           S2 = 1;
@@ -548,8 +626,8 @@ void debounceC(){
         else if (Z4 == 1 and Z5 == 0){
           Z5 = 1;
         }
-        else if (Z7 == 1 and Z8 == 0){
-          Z8 = 1;
+        else if (Z6 == 1 and Z7 == 0){
+          Z7 = 1;
         }
         else{
         R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -572,7 +650,11 @@ void debounceC(){
 void twinkle(){
   if (R1 == 1 && R2 == 1 && R3 == 1 && R4 == 1 && R5 == 1 && R6 == 1 && R7 == 1 && R8 == 1 && R9 == 1 && R10 == 1 && R11 == 1 && R12 == 1 && R13 == 1 && R14 == 1){ //Check if the first button combination is completed
     delay(1000);
+    stripProgress.setPixelColor(0, 0xFF0000);
+    stripProgress.show();
     myDFPlayer.play(16); //play the melody to show that the user input the correct combination
+    delay(10000);
+    myDFPlayer.play(14);
     R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0; //reset the combination for the first melody
     T1 = 1; //Variable to check if all melodies is completed
     }
@@ -581,15 +663,22 @@ void twinkle(){
 void yankee(){
   if (S1 == 1 && S2 == 1 && S3 == 1 && S4 == 1 && S5 == 1 && S6 == 1 && S7 == 1 && S8 == 1 && S9 == 1 && S10 == 1 && S11 == 1 && S12 == 1 && S13 == 1){ //Check if the second combination is completed
     delay(1000);
+    stripProgress.setPixelColor(1, 0xFF0000);
+    stripProgress.show();
     myDFPlayer.play(17); //play the melody to show that the user input the correct combination
+    delay(9600);
+    myDFPlayer.play(15);
     S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0; //reset the combination for the second melody
     T2 = 1; //Variable to check if all melodies is completed
     }
   }
 
 void river(){
-  if (Z1 == 1 && Z2 == 1 && Z3 == 1 && Z4 == 1 && Z5 == 1 && Z6 == 1 && Z7 == 1 && Z8 == 1 && Z9 == 1 && Z10 == 1 && Z11 == 1 && Z12 == 1 && Z13 == 1 && Z14 == 1 && Z15 == 1 && Z16 == 1){//Check if the third combination is completed
+  if (Z1 == 1 && Z2 == 1 && Z3 == 1 && Z4 == 1 && Z5 == 1 && Z6 == 1 && Z7 == 1 && Z8 == 1 && Z9 == 1 && Z10 == 1 && Z11 == 1 && Z12 == 1 && Z13 == 1){//Check if the third combination is completed
     delay(1000);
+    stripProgress.setPixelColor(2, 0xFF0000);
+    stripProgress.setPixelColor(3, 0xFF0000);
+    stripProgress.show();
     myDFPlayer.play(18); //play the melody to show that the user input the correct combination
     Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0; //reset the combination for the third melody
     T3 = 1; //Variable to check if all melodies is completed
@@ -598,11 +687,38 @@ void river(){
 
 void total(){
   if (T1 == 1 && T2 == 1 && T3 == 1){ //checks if the user has done all three melodies
-    delay(13000);
     T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
-    U = 1; //when U = 1 the program knows that the user is done with this module
+    U = 0; //when U = 1 the program knows that the user is done with this module
+    V = 1;
+    melodiesFinished = true;
+    sendToMaster = 1;
     }
   }
+
+
+void playRtN(){
+  
+  myDFPlayer.play(13);  //Play the first melody
+  while (!melodiesFinished){
+    debounceup(); //button for volume up
+    debouncedown(); //button for volume down
+    debounceplay(); //button for replaying the melody
+    
+    debouncec(); //button for low c note
+    debounceD(); //button for D note
+    debounceE(); //button for E note
+    debounceF(); //button for F note
+    debounceG(); //button for G note
+    debounceA(); //button for A note
+    debounceB(); //button for B note
+    debounceC(); //button for high C note
+    
+    twinkle(); //check for first melody
+    yankee(); //check for second melody
+    river(); //check for third melody
+    total(); //check for all melodies
+  }
+}
 
 void printDetail(uint8_t type, int value){
   switch (type) {
@@ -665,156 +781,3 @@ void printDetail(uint8_t type, int value){
   }
   
 }
-
-void setup()
-{
-  Serial1.begin(9600);
-  Serial.begin(115200);
-
-  Wire.begin(0x01);
-  Wire.onReceive(receiveEvent);
-  Wire.onRequest(requestEvent);
-  
-  pinMode(up, INPUT_PULLUP);
-  pinMode(down, INPUT_PULLUP);
-  pinMode(play, INPUT_PULLUP);
-
-  pinMode(A, INPUT_PULLUP);
-  pinMode(B, INPUT_PULLUP);
-  pinMode(c, INPUT_PULLUP);
-  pinMode(D, INPUT_PULLUP);
-  pinMode(E, INPUT_PULLUP);
-  pinMode(F, INPUT_PULLUP);
-  pinMode(G, INPUT_PULLUP);
-  pinMode(C, INPUT_PULLUP);
-  
-  Serial.println();
-  Serial.println(F("DFRobot DFPlayer Mini Demo"));
-  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
-  
-  if (!myDFPlayer.begin(Serial1)) {  //Use softwareSerial to communicate with mp3.
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    while(true){
-      delay(0); // Code to compatible with ESP8266 watch dog.
-    }
-  }
-  Serial.println(F("DFPlayer Mini online."));
-  
-  myDFPlayer.volume(volume);  //Set volume value to the volume int
-  myDFPlayer.play(13);  //Play the first melody
-}
-
-void loop()
-{ 
-  debounceup(); //button for volume up
-  debouncedown(); //button for volume down
-  debounceplay(); //button for replaying the melody
-  
-  debouncec(); //button for low c note
-  debounceD(); //button for D note
-  debounceE(); //button for E note
-  debounceF(); //button for F note
-  debounceG(); //button for G note
-  debounceA(); //button for A note
-  debounceB(); //button for B note
-  debounceC(); //button for high C note
-  
-  twinkle(); //check for first melody
-  yankee(); //check for second melody
-  river(); //check for third melody
-  total(); //check for all melodies
-  
-  
-  if (myDFPlayer.available()) {
-    printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
-  }
-}
-
-/*void total(){
-  if (T1 == 1 && T2 == 1 && T3 == 1){ //checks if the user has done all three melodies
-    sendToMaster = 1;
-    delay(13000);
-    T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
-    U = 1; //when U = 1 the program knows that the user is done with this module
-    melodiesFinished = true;
-    }
-  }
-
-void playRtN(){
-  sendToMaster = 1;
-  myDFPlayer.play(13);  //Play the first melody
-  while (!melodiesFinished){
-    debounceup(); //button for volume up
-    debouncedown(); //button for volume down
-    debounceplay(); //button for replaying the melody
-    
-    debouncec(); //button for low c note
-    debounceD(); //button for D note
-    debounceE(); //button for E note
-    debounceF(); //button for F note
-    debounceG(); //button for G note
-    debounceA(); //button for A note
-    debounceB(); //button for B note
-    debounceC(); //button for high C note
-    
-    twinkle(); //check for first melody
-    yankee(); //check for second melody
-    river(); //check for third melody
-    total(); //check for all melodies
-  }
-}
-
-void receiveEvent(int) {
-  receiveFromMaster = Wire.read();
-  if (receiveFromMaster == 1) {
-    //Serial.println("RtN running - Builtin LED turning on");
-    playRtN();
-  }
-}
-
-void requestEvent() {
-  while(melodiesFinished) {
-    if (sendToMaster == 0) {
-      //Serial.println("Sent 'No Signal' to Master");
-      Wire.write(sendToMaster);
-    }
-    else if (sendToMaster == 1) {
-      //Serial.println("Sent 'Finished RtN' to Master");
-      Wire.write(sendToMaster);
-      sendToMaster = 0;
-    }
-    melodiesFinished = false;
-  }
-}
-
-void setup()
-{
-  Serial.begin(9600);
-  Serial1.begin(9600);
-
-  Wire.begin(0x01);
-  Wire.onReceive(receiveEvent);
-  Wire.onRequest(requestEvent);
-  
-  pinMode(up, INPUT_PULLUP);
-  pinMode(down, INPUT_PULLUP);
-  pinMode(play, INPUT_PULLUP);
-
-  pinMode(A, INPUT_PULLUP);
-  pinMode(B, INPUT_PULLUP);
-  pinMode(c, INPUT_PULLUP);
-  pinMode(D, INPUT_PULLUP);
-  pinMode(E, INPUT_PULLUP);
-  pinMode(F, INPUT_PULLUP);
-  pinMode(G, INPUT_PULLUP);
-  pinMode(C, INPUT_PULLUP);
-
-  myDFPlayer.volume(volume);  //Set volume value to the volume int
-}
-
-void loop()
-{ 
-
-}*/

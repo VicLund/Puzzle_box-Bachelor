@@ -115,7 +115,6 @@ Adafruit_NeoPixel stripProgress(LED_COUNT_Progress, LedStripProgressPin, NEO_RGB
 // Argument 2 = Arduino pin number (most are valid)
 // Argument 3 = Pixel type flags, add together as needed:
 
-
 DFRobotDFPlayerMini myDFPlayer;
 void printDetail(uint8_t type, int value);
 
@@ -197,9 +196,7 @@ void setup()
   Serial.println(F("DFPlayer Mini online."));
   
   myDFPlayer.volume(volume);  //Set volume value to the volume int
-  myDFPlayer.play(19);
-  delay(5100);
-  myDFPlayer.stop();
+  myDFPlayer.play(24);
 }
 
 void loop()
@@ -315,7 +312,7 @@ void debounceplay(){
           myDFPlayer.play(14); //play the second melody again
         }
         else if (T1 == 1 and T2 == 1){ //check if the third melody is done
-          myDFPlayer.play(15); //play the third melody again
+          myDFPlayer.play(20); //play the third melody again
         }
      }
     }
@@ -678,9 +675,7 @@ void twinkle(){
     delay(1000);
     stripProgress.setPixelColor(0, 0xFF0000);
     stripProgress.show();
-    myDFPlayer.play(16); //play the melody to show that the user input the correct combination
-    delay(10000);
-    myDFPlayer.play(14);
+    myDFPlayer.play(21); //play the melody to show that the user input the correct combination, with the new song at the end
     R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0; //reset the combination for the first melody
     T1 = 1; //Variable to check if all melodies is completed
     }
@@ -691,9 +686,7 @@ void yankee(){
     delay(1000);
     stripProgress.setPixelColor(1, 0xFF0000);
     stripProgress.show();
-    myDFPlayer.play(17); //play the melody to show that the user input the correct combination
-    delay(9600);
-    myDFPlayer.play(15);
+    myDFPlayer.play(22); //play the melody to show that the user input the correct combination, with the new song at the end
     S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0; //reset the combination for the second melody
     T2 = 1; //Variable to check if all melodies is completed
     }

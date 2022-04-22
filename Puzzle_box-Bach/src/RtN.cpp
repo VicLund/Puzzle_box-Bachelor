@@ -91,9 +91,6 @@ int Z10 = 0;
 int Z11 = 0;
 int Z12 = 0;
 int Z13 = 0;
-int Z14 = 0;
-int Z15 = 0;
-int Z16 = 0;
 
 //Variables to check if all melodies is correct
 int T1 = 0;

@@ -95,6 +95,7 @@ Adafruit_NeoPixel strip(numPixels, LEDpin, NEO_GRB + NEO_KHZ800);
 int mainMenu = 1;
 
 //These 5 arrays paint the bars that go across the screen.  
+byte zero[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
 byte one[8] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
 byte two[8] = {0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18};
 byte three[8] = {0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C};
@@ -172,6 +173,7 @@ void setup() {
   strip.setBrightness(brightness); // Set BRIGHTNESS to about 1/5 (max = 255)
   startUpLights();
 
+  lcd.createChar(0, zero);
   lcd.createChar(1, one);
   lcd.createChar(2, two);
   lcd.createChar(3, three);
@@ -757,24 +759,36 @@ void progressBar_startStopPoint(int pb_startPoint, int pb_stopPoint){
   for(int i = pb_startPoint; i <= pb_stopPoint; i++){
     lcd.setCursor(0,0);
     lcd.print(i);
-    lcd.print(" %"); 
+    lcd.print("%"); 
     lcd.print("   ");
     updateProgressBar(i, 100, 1);
     delay(100);
-  }
+  } 
 }
 
 // Not own code, taken from: https://www.instructables.com/Simple-Progress-Bar-for-Arduino-and-LCD/
-void updateProgressBar(unsigned long count, unsigned long totalCount, int lineToPrintOn){
-  double factor = totalCount/80.0;          
-  int percent = (count+1)/factor;
-  int number = percent/5;
-  int remainder = percent%5;
-  if(number > 0)
-  {
-    lcd.setCursor(number-1,lineToPrintOn);
-    lcd.write(5);
-  }
-  lcd.setCursor(number,lineToPrintOn);
-  lcd.write(remainder);
-}
+ void updateProgressBar(unsigned long count, unsigned long totalCount, int lineToPrintOn)
+ {
+    double factor = totalCount/80.0;          //See note above!
+    int percent = (count+1)/factor;
+    int number = percent/5;
+    int remainder = percent%5;
+    if(number > 0)
+    {
+      for(int j = 0; j < number; j++)
+      {
+        lcd.setCursor(j,lineToPrintOn);
+       lcd.write(5);
+      }
+    }
+       lcd.setCursor(number,lineToPrintOn);
+       lcd.write(remainder); 
+     if(number < 16)
+    {
+      for(int j = number+1; j <= 16; j++)
+      {
+        lcd.setCursor(j,lineToPrintOn);
+       lcd.write(0);
+      }
+    }  
+ }

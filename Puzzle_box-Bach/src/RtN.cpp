@@ -91,9 +91,6 @@ int Z10 = 0;
 int Z11 = 0;
 int Z12 = 0;
 int Z13 = 0;
-int Z14 = 0;
-int Z15 = 0;
-int Z16 = 0;
 
 //Variables to check if all melodies is correct
 int T1 = 0;
@@ -115,9 +112,7 @@ Adafruit_NeoPixel stripProgress(LED_COUNT_Progress, LedStripProgressPin, NEO_RGB
 // Argument 2 = Arduino pin number (most are valid)
 // Argument 3 = Pixel type flags, add together as needed:
 
-
 DFRobotDFPlayerMini myDFPlayer;
-void printDetail(uint8_t type, int value);
 
 //Define variable to receive
 byte receiveFromMaster = 0;
@@ -153,8 +148,6 @@ void total();
 
 void playRtN();
 
-void printDetail(uint8_t type, int value);
-
 void setup()
 {
   Serial1.begin(9600);
@@ -182,24 +175,8 @@ void setup()
   stripProgress.setBrightness(BRIGHTNESS); 
   stripProgress.show();
   
-  Serial.println();
-  Serial.println(F("DFRobot DFPlayer Mini Demo"));
-  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
-  
-  if (!myDFPlayer.begin(Serial1)) {  //Use softwareSerial to communicate with mp3.
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    while(true){
-      delay(0); // Code to compatible with ESP8266 watch dog.
-    }
-  }
-  Serial.println(F("DFPlayer Mini online."));
-  
   myDFPlayer.volume(volume);  //Set volume value to the volume int
-  myDFPlayer.play(19);
-  delay(5100);
-  myDFPlayer.stop();
+  myDFPlayer.play(24);
 }
 
 void loop()
@@ -234,8 +211,6 @@ void receiveEvent(int) {
 }
 
 void requestEvent() {
-  Serial.println(sendToMaster);
-  Serial.println(melodiesFinished);
   while(melodiesFinished) {
     if (sendToMaster == 0) {
       Serial.println("Sent 'No Signal' to Master");
@@ -315,7 +290,7 @@ void debounceplay(){
           myDFPlayer.play(14); //play the second melody again
         }
         else if (T1 == 1 and T2 == 1){ //check if the third melody is done
-          myDFPlayer.play(15); //play the third melody again
+          myDFPlayer.play(20); //play the third melody again
         }
      }
     }
@@ -344,14 +319,8 @@ void debouncec(){
         else{
           R1 = 1, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("c");
-        Serial.print("R1:"); Serial.println(R1);Serial.print("R2:"); Serial.println(R2);Serial.print("R3:"); Serial.println(R3);Serial.print("R4:"); Serial.println(R4);Serial.print("R5:"); Serial.println(R5);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -385,15 +354,8 @@ void debounceD(){
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("D");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -427,15 +389,8 @@ void debounceE(){
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("E");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -469,15 +424,8 @@ void debounceF(){
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("F");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -529,15 +477,8 @@ void debounceG(){
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 1, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("G");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -574,15 +515,8 @@ void debounceA(){
         else{
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+          Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("A");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -619,15 +553,8 @@ void debounceB(){
         else{
         R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
         S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-        Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+        Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("B");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -658,15 +585,8 @@ void debounceC(){
         else{
         R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
         S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;
-        Z1 = 1, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0;
+        Z1 = 1, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
         }
-        Serial.println("C");
-        Serial.print("R:");
-        Serial.println( R1 + R2 + R3 + R4 + R5 + R6 + R7 + R8 + R9 + R10 + R11 + R12 + R13 + R14);
-        Serial.print("S:");
-        Serial.println(S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 + S10 + S11 + S12 + S13);
-        Serial.print("Z:"); 
-        Serial.println(Z1 + Z2 + Z3 + Z4 + Z5 + Z6 + Z7 + Z8 + Z9 + Z10 + Z11 + Z12 + Z13 + Z14 + Z15 + Z16);
       }
     }
   }
@@ -678,9 +598,7 @@ void twinkle(){
     delay(1000);
     stripProgress.setPixelColor(0, 0xFF0000);
     stripProgress.show();
-    myDFPlayer.play(16); //play the melody to show that the user input the correct combination
-    delay(10000);
-    myDFPlayer.play(14);
+    myDFPlayer.play(21); //play the melody to show that the user input the correct combination, with the new song at the end
     R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0; //reset the combination for the first melody
     T1 = 1; //Variable to check if all melodies is completed
     }
@@ -691,9 +609,7 @@ void yankee(){
     delay(1000);
     stripProgress.setPixelColor(1, 0xFF0000);
     stripProgress.show();
-    myDFPlayer.play(17); //play the melody to show that the user input the correct combination
-    delay(9600);
-    myDFPlayer.play(15);
+    myDFPlayer.play(22); //play the melody to show that the user input the correct combination, with the new song at the end
     S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0; //reset the combination for the second melody
     T2 = 1; //Variable to check if all melodies is completed
     }
@@ -706,7 +622,7 @@ void river(){
     stripProgress.setPixelColor(3, 0xFF0000);
     stripProgress.show();
     myDFPlayer.play(18); //play the melody to show that the user input the correct combination
-    Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0, Z14 = 0, Z15 = 0, Z16 = 0; //reset the combination for the third melody
+    Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0; //reset the combination for the third melody
     T3 = 1; //Variable to check if all melodies is completed
     }
   }
@@ -743,66 +659,4 @@ void playRtN(){
     river(); //check for third melody
     total(); //check for all melodies
   }
-}
-
-void printDetail(uint8_t type, int value){
-  switch (type) {
-    case TimeOut:
-      Serial.println(F("Time Out!"));
-      break;
-    case WrongStack:
-      Serial.println(F("Stack Wrong!"));
-      break;
-    case DFPlayerCardInserted:
-      Serial.println(F("Card Inserted!"));
-      break;
-    case DFPlayerCardRemoved:
-      Serial.println(F("Card Removed!"));
-      break;
-    case DFPlayerCardOnline:
-      Serial.println(F("Card Online!"));
-      break;
-    case DFPlayerUSBInserted:
-      Serial.println("USB Inserted!");
-      break;
-    case DFPlayerUSBRemoved:
-      Serial.println("USB Removed!");
-      break;
-//    case DFPlayerPlayFinished:
-//      Serial.print(F("Number:"));
-//      Serial.print(value);
-//      Serial.println(F(" Play Finished!"));
-      break;
-    case DFPlayerError:
-      Serial.print(F("DFPlayerError:"));
-      switch (value) {
-        case Busy:
-          Serial.println(F("Card not found"));
-          break;
-        case Sleeping:
-          Serial.println(F("Sleeping"));
-          break;
-        case SerialWrongStack:
-          Serial.println(F("Get Wrong Stack"));
-          break;
-        case CheckSumNotMatch:
-          Serial.println(F("Check Sum Not Match"));
-          break;
-        case FileIndexOut:
-          Serial.println(F("File Index Out of Bound"));
-          break;
-        case FileMismatch:
-          Serial.println(F("Cannot Find File"));
-          break;
-        case Advertise:
-          Serial.println(F("In Advertise"));
-          break;
-        default:
-          break;
-      }
-      break;
-    default:
-      break;
-  }
-  
 }

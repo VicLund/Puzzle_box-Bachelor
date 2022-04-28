@@ -102,7 +102,7 @@ int U = 0;
 int V = 0;
 
 //set the volume to starter value (between 0 and 30)
-int volume = 10;
+int volume = 15;
 
 unsigned long debounceDelay = 30;
 unsigned long lastDebounceTimeNote = 0;
@@ -174,9 +174,19 @@ void setup()
   stripProgress.begin();
   stripProgress.setBrightness(BRIGHTNESS); 
   stripProgress.show();
+
+  if (!myDFPlayer.begin(Serial1)) {  //Use softwareSerial to communicate with mp3.
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    while(true){
+      delay(0); // Code to compatible with ESP8266 watch dog.
+    }
+  }
+  Serial.println(F("DFPlayer Mini online."));
   
   myDFPlayer.volume(volume);  //Set volume value to the volume int
-  myDFPlayer.play(24);
+  myDFPlayer.play(27);
 }
 
 void loop()
@@ -186,13 +196,29 @@ void loop()
   if (U == 1) {
     playRtN();
   }
+  if (U == 6){ //startup 
+    myDFPlayer.play(23);
+    U = 0;
+  }
+  if (U == 7){ //Tick
+    myDFPlayer.play(27);
+    U = 0;
+  }
+  if (U == 8){ // Boom
+    myDFPlayer.play(26);
+    U = 0;
+  }
+  if (U == 9){ //Celebrate
+    myDFPlayer.play(25);
+    U = 0;
+  }
   if (V == 1){
     clearLEDs();
   }
 }
 
 void clearLEDs(){
-    delay(13500);
+    delay(10000);
     stripProgress.clear();
     stripProgress.show();
     V = 0;
@@ -201,11 +227,23 @@ void clearLEDs(){
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
   if (receiveFromMaster == 1) {
-    Serial.println("RtN running - Builtin LED turning on");
+    Serial.println("RtN running");
     U = 1;
   }
+  if (receiveFromMaster == 6) {
+    Serial.println("Play startup");
+    U = 6;
+  }
+  if (receiveFromMaster == 7) {
+    Serial.println("Play tick sound");
+    U = 7;
+  }
+  if (receiveFromMaster == 8) {
+    Serial.println("BOOM!");
+    U = 8;
+  }
   if (receiveFromMaster == 9) {
-    Serial.println("RtN running - Builtin LED turning on");
+    Serial.println("Woho!");
     U = 9;
   }
 }
@@ -290,7 +328,7 @@ void debounceplay(){
           myDFPlayer.play(14); //play the second melody again
         }
         else if (T1 == 1 and T2 == 1){ //check if the third melody is done
-          myDFPlayer.play(20); //play the third melody again
+          myDFPlayer.play(19); //play the third melody again
         }
      }
     }
@@ -598,7 +636,7 @@ void twinkle(){
     delay(1000);
     stripProgress.setPixelColor(0, 0xFF0000);
     stripProgress.show();
-    myDFPlayer.play(21); //play the melody to show that the user input the correct combination, with the new song at the end
+    myDFPlayer.play(20); //play the melody to show that the user input the correct combination, with the new song at the end
     R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0; //reset the combination for the first melody
     T1 = 1; //Variable to check if all melodies is completed
     }
@@ -609,7 +647,7 @@ void yankee(){
     delay(1000);
     stripProgress.setPixelColor(1, 0xFF0000);
     stripProgress.show();
-    myDFPlayer.play(22); //play the melody to show that the user input the correct combination, with the new song at the end
+    myDFPlayer.play(21); //play the melody to show that the user input the correct combination, with the new song at the end
     S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0; //reset the combination for the second melody
     T2 = 1; //Variable to check if all melodies is completed
     }
@@ -630,7 +668,7 @@ void river(){
 void total(){
   if (T1 == 1 && T2 == 1 && T3 == 1){ //checks if the user has done all three melodies
     T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
-    U = 0; //when U = 1 the program knows that the user is done with this module
+    U = 0; //when U = 0 the program knows that the user is done with this module
     V = 1;
     melodiesFinished = true;
     sendToMaster = 1;
@@ -638,7 +676,6 @@ void total(){
   }
 
 void playRtN(){
-  
   myDFPlayer.play(13);  //Play the first melody
   while (!melodiesFinished){
     debounceup(); //button for volume up

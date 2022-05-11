@@ -247,23 +247,18 @@ void clearLED() {
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
   if (receiveFromMaster == 1) {
-    Serial.println("RtN running");
     U = 1;
   }
   if (receiveFromMaster == 6) {
-    Serial.println("Play startup");
     U = 6;
   }
   if (receiveFromMaster == 7) {
-    Serial.println("Play tick sound");
     U = 7;
   }
   if (receiveFromMaster == 8) {
-    Serial.println("BOOM!");
     U = 8;
   }
   if (receiveFromMaster == 9) {
-    Serial.println("Woho!");
     U = 9;
   }
 }
@@ -271,22 +266,18 @@ void receiveEvent(int) {
 void requestEvent() {
   while (melodiesFinished) {
     if (sendToMaster == 0) {
-      Serial.println("Sent 'No Signal' to Master");
       Wire.write(sendToMaster);
     }
     else if (sendToMaster == 1) {
-      Serial.println("Sent 'Finished RtN' to Master");
       Wire.write(sendToMaster);
       sendToMaster = 0;
     }
     else if (sendToMaster == 10) {
-      Serial.println("Sent 'Gave up RtN' to Master");
       Wire.write(sendToMaster);
       sendToMaster = 0;
     }
     melodiesFinished = false;
     sendToMaster = 0;
-    Serial.println("in request event");
   }
 }
 
@@ -691,10 +682,9 @@ void debounceC() {
 
 void twinkle() {
   if (R1 == 1 && R2 == 1 && R3 == 1 && R4 == 1 && R5 == 1 && R6 == 1 && R7 == 1 && R8 == 1 && R9 == 1 && R10 == 1 && R11 == 1 && R12 == 1 && R13 == 1 && R14 == 1) { //Check if the first button combination is completed
-    delay(1000);
+    delay(500);
     stripProgress.setPixelColor(3, 0xFF0000);
     stripProgress.show();
-    Serial.println("Twinkle Done");
     myDFPlayer.play(20); //play the melody to show that the user input the correct combination, with the new song at the end
     R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0; //reset the combination for the first melody
     T1 = 1; //Variable to check if all melodies is completed
@@ -703,10 +693,9 @@ void twinkle() {
 
 void yankee() {
   if (S1 == 1 && S2 == 1 && S3 == 1 && S4 == 1 && S5 == 1 && S6 == 1 && S7 == 1 && S8 == 1 && S9 == 1 && S10 == 1 && S11 == 1 && S12 == 1 && S13 == 1) { //Check if the second combination is completed
-    delay(1000);
+    delay(500);
     stripProgress.setPixelColor(2, 0xFF0000);
     stripProgress.show();
-    Serial.println("Yankee Done");
     myDFPlayer.play(21); //play the melody to show that the user input the correct combination, with the new song at the end
     S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0; //reset the combination for the second melody
     T2 = 1; //Variable to check if all melodies is completed
@@ -715,11 +704,10 @@ void yankee() {
 
 void river() {
   if (Z1 == 1 && Z2 == 1 && Z3 == 1 && Z4 == 1 && Z5 == 1 && Z6 == 1 && Z7 == 1 && Z8 == 1 && Z9 == 1 && Z10 == 1 && Z11 == 1 && Z12 == 1 && Z13 == 1) { //Check if the third combination is completed
-    delay(1000);
+    delay(500);
     stripProgress.setPixelColor(1, 0xFF0000);
     stripProgress.setPixelColor(0, 0xFF0000);
     stripProgress.show();
-    Serial.println("River Done");
     myDFPlayer.play(18); //play the melody to show that the user input the correct combination
     Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0; //reset the combination for the third melody
     T3 = 1; //Variable to check if all melodies is completed

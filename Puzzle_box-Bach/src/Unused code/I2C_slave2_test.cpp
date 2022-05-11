@@ -19,6 +19,7 @@ byte sendToMaster = 0;
 boolean lightsFinished = false;
 
 //Forward declare functions
+void I2C_setup();
 void receiveEvent(int);
 void requestEvent();
 void builtinLED_FtS();
@@ -28,9 +29,7 @@ void setup() {
   Serial.begin(9600);
 
   //I2C setup
-  Wire.begin(0x02);
-  Wire.onReceive(receiveEvent);
-  Wire.onRequest(requestEvent);
+  I2C_setup();
 
   pinMode(LED_BUILTIN, OUTPUT);
 }
@@ -44,6 +43,12 @@ void loop() {
   Serial.println(" seconds ago.");
   Serial.println("Will you stop Dave. I am afraid.");
   delay(1000);*/
+}
+
+void I2C_setup(){
+  Wire.begin(0x02);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
 }
 
 void receiveEvent(int) {
@@ -93,6 +98,7 @@ void builtinLED_FtS() {
     delay(2000);
   }
   delay(1000);
+  Wire.begin(0x79);
   lightsFinished = true;
 }
 

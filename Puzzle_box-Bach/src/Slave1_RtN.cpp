@@ -373,23 +373,13 @@ void debouncec() {
     if (c_reading != c_state) {
       c_state = c_reading;
       if (c_state == LOW) {
-        Serial.println("C");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(1); //play the c note
+        G1 = 1;
         if (R1 == 1 and R2 == 0) { //check if user press the correct button combination
           R2 = 1;
-          G1 = 1;
         }
         else if (R13 == 1 and R14 == 0) {
           R14 = 1;
-          G1 = 1;
         }
         else {
           R1 = 1, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -436,20 +426,6 @@ void debounceD() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
-        Serial.println("G");
-        Serial.print(S1);
-        Serial.print(S2);
-        Serial.print(S3);
-        Serial.print(S4);
-        Serial.print(S5);
-        Serial.print(S6);
-        Serial.print(S7);
-        Serial.print(S8);
-        Serial.print(S9);
-        Serial.print(S10);
-        Serial.print(S11);
-        Serial.print(S12);
-        Serial.print(S13);
       }
     }
   }
@@ -528,20 +504,6 @@ void debounceF() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
-        Serial.println("S");
-        Serial.print(S1);
-        Serial.print(S2);
-        Serial.print(S3);
-        Serial.print(S4);
-        Serial.print(S5);
-        Serial.print(S6);
-        Serial.print(S7);
-        Serial.print(S8);
-        Serial.print(S9);
-        Serial.print(S10);
-        Serial.print(S11);
-        Serial.print(S12);
-        Serial.print(S13);
       }
     }
   }
@@ -560,6 +522,7 @@ void debounceG() {
       G_state = G_reading;
       if (G_state == LOW) {
         myDFPlayer.play(5); //play the G note
+        S1 = 1;
         if (R2 == 1 and R3 == 0) { //check if user press the correct button combination
           R3 = 1;
         }
@@ -599,21 +562,6 @@ void debounceG() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
-
-        Serial.println("G");
-        Serial.print(S1);
-        Serial.print(S2);
-        Serial.print(S3);
-        Serial.print(S4);
-        Serial.print(S5);
-        Serial.print(S6);
-        Serial.print(S7);
-        Serial.print(S8);
-        Serial.print(S9);
-        Serial.print(S10);
-        Serial.print(S11);
-        Serial.print(S12);
-        Serial.print(S13);
       }
     }
   }
@@ -656,20 +604,6 @@ void debounceA() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
-        Serial.println("A");
-        Serial.print(S1);
-        Serial.print(S2);
-        Serial.print(S3);
-        Serial.print(S4);
-        Serial.print(S5);
-        Serial.print(S6);
-        Serial.print(S7);
-        Serial.print(S8);
-        Serial.print(S9);
-        Serial.print(S10);
-        Serial.print(S11);
-        Serial.print(S12);
-        Serial.print(S13);
       }
     }
   }
@@ -712,20 +646,6 @@ void debounceB() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
-        Serial.println("B");
-        Serial.print(S1);
-        Serial.print(S2);
-        Serial.print(S3);
-        Serial.print(S4);
-        Serial.print(S5);
-        Serial.print(S6);
-        Serial.print(S7);
-        Serial.print(S8);
-        Serial.print(S9);
-        Serial.print(S10);
-        Serial.print(S11);
-        Serial.print(S12);
-        Serial.print(S13);
       }
     }
   }
@@ -743,16 +663,8 @@ void debounceC() {
     if (C_reading != C_state) {
       C_state = C_reading;
       if (C_state == LOW) {
-        Serial.println("C");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(8); //play the C note
+        Z1 = 1;
         if (Z2 == 1 and Z3 == 0) { //check if user press the correct button combination
           Z3 = 1;
         }

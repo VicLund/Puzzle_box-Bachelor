@@ -2,23 +2,25 @@
 #include <SPI.h>
 #include <Wire.h>
 
-#include <DFRobotDFPlayerMini.h>
-#include <Adafruit_LEDBackpack.h>
-#include <Adafruit_Keypad.h>
+//#include <DFRobotDFPlayerMini.h>
+//#include <Adafruit_LEDBackpack.h>
+//#include <Adafruit_Keypad.h>
 #include <Adafruit_NeoPixel.h>
-#include <Adafruit_seesaw.h>
+//#include <Adafruit_seesaw.h>
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_NeoTrellis.h>
 //#include <DFRobot_I2CMultiplexer.h>
 
 //I2C slaves defines
-#define slaveAdr1 0x01
-#define slaveAdr2 0x02
+#define slaveAdr1 0x78
+#define slaveAdr2 0x79 
 
 //Define variable to send to slaves
 int RtN = 1;
 int FtS = 2;
 int CtC = 3;
+
+//int bug_fix = 4;
 
 int start = 6;
 int tick = 7;
@@ -33,18 +35,18 @@ byte masterReceiveSlave2;
 // Variables for the LED gravity buttons for the menu and setting them to a pin
 const int menuButtonPgUp = A0;
 const int menuButtonPgDn = A1;
-const int menuButtonEnter = A2;
-const int menuButtonEsc = A3;
+const int menuButtonEnter = 2;
+const int menuButtonEsc = 3;
 
 // Variables for module buttons, 1 pin for LED, 1 pin for actual button
 const int LO_button = A5;
 const int LO_LED = A6;
-const int RtN_button = 0;
-const int RtN_LED = 1;
-const int FtS_button = 2;
-const int FtS_LED = 3;
-const int CtC_button = 4;
-const int CtC_LED = 5;
+const int RtN_button = 4;
+const int RtN_LED = 5;
+const int FtS_button = 0;
+const int FtS_LED = 1;
+const int CtC_button = A2;
+const int CtC_LED = A3;
 
 //Variable for toggle switch
 const int toggle_switch = 6;
@@ -53,6 +55,9 @@ const int toggle_switch = 6;
 #define LEDpin 8
 #define numStripPixels 92
 int stripBrightness = 50;
+
+//Set up LED strip, with # of pixels, pin #, and type
+Adafruit_NeoPixel strip(numStripPixels, LEDpin, NEO_GRB + NEO_KHZ800);
 
 // Current button state and last button state variables for menu buttons
 int menuButtonPgUp_state;
@@ -100,13 +105,10 @@ boolean CtC_LED_on = false;
 // Set the LCD address to 0x20 for a 16x02 display
 LiquidCrystal_I2C lcd(0x20, 16, 2);
 
-//Set up LED strip, with # of pixels, pin #, and type
-Adafruit_NeoPixel strip(numStripPixels, LEDpin, NEO_GRB + NEO_KHZ800);
-
 // Menu variable that always starts at 1
 int mainMenu = 1;
 
-//These 5 arrays paint the bars that go across the screen.  
+//These 5 arrays paint the bars that go across the screen. 
 byte zero[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
 byte one[8] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
 byte two[8] = {0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18};
@@ -142,10 +144,18 @@ boolean countdownTimerOn = false;
 boolean waitPlayAgain = false;
 boolean askPlayAgain = false;
 
+// Which module failed variable
+String moduleFailed_name;
+
+// Fail or pass module variable
+String fail_pass_LO;
+String fail_pass_RtN;
+String fail_pass_FtC;
+
 //Lights On variables
 Adafruit_NeoTrellis trellis;
 
-int brightness = 20;
+int trellisBrightness = 20;
 int buttonPressed;
 int buttonAdjUp;
 int buttonAdjRight;
@@ -165,6 +175,7 @@ uint32_t blue = 0x0000FF;
 uint32_t yellow = 0xFFF200;
 uint32_t purple = 0xD900FF;
 uint32_t turq = 0x00FFFF;
+uint32_t white = 0xFFFFFF;
 
 int regularButtonsArray[] = {0, 1, 2, 5, 6, 9, 10, 13, 14, 15};
 int leftButtonsArray[] = {3, 7, 11};
@@ -210,6 +221,7 @@ void properEnding();
 void updateMainMenu();
 void executeReset();
 void startUpLights();
+void moduleColors();
 void executeMainMenuAction();
 
 void singlePlay();
@@ -235,6 +247,13 @@ void RtN_func();
 void FtS_func();
 void CtC_func();
 
+void moduleFailed();
+void modulePassed();
+void moduleFailed_lights();
+void celebrateLights();
+void properEnding_lights();
+void trickEnding_lights();
+
 void updateProgressBar(unsigned long, unsigned long, int);
 void progressBar_startStopPoint(int, int);
 
@@ -242,7 +261,7 @@ void progressBar_startStopPoint(int, int);
 void trellisStartup();
 void trellisShutDown();
 void trellisStartupAnimation();
-void checkFinished();
+void checkFinished(int);
 void finishSequence();
 void emptyTrellisArray();
 void cheatCode(int);
@@ -251,7 +270,8 @@ void regularAdjButtons(int);
 void leftAdjButtons(int);
 void rightAdjButtons(int);
 void rainbowChaseBorder();
-void fireworks();
+void fireworks_singlePlay();
+void fireworks_gamePlay();
 void rainbowPulse();
 void blinkRed();
 
@@ -261,7 +281,7 @@ TrellisCallback blink(keyEvent evt){
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
     buttonPressed = evt.bit.NUM;
     LO_buttonCheck(buttonPressed);
-    checkFinished();
+    checkFinished(buttonPressed);
     cheatCode(buttonPressed);
     
   } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
@@ -291,7 +311,12 @@ void setup() {
   strip.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
   strip.setBrightness(stripBrightness); // Set BRIGHTNESS to about 1/5 (max = 255)
-  
+
+  for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
+    trellis.pixels.setPixelColor(i, 0x000000);
+    trellis.pixels.show();
+  }
+
   startSequence();
 
   lcd.createChar(0, zero);
@@ -344,7 +369,7 @@ uint32_t Wheel(byte WheelPos) {
 // Lights On functions
 void trellisStartup(){
   //activate all keys and set callbacks
-  for(int i=0; i<NEO_TRELLIS_NUM_KEYS; i++){
+  for(int i=0; i<16; i++){
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_RISING);
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING);
     trellis.registerCallback(i, blink);
@@ -373,7 +398,7 @@ void trellisShutDown(){
   }
 }
 
-void checkFinished(){
+void checkFinished(int buttonPressed){
   trellisSum = 0;
   for(int i = 0; i < trellisArraySize; i++){
     trellisSum += trellisArray[i];
@@ -384,6 +409,7 @@ void checkFinished(){
     Serial.println("You're finished");
     finishSequence();
   }
+  //cheatCode(buttonPressed);
 }
 
 void finishSequence(){
@@ -391,16 +417,22 @@ void finishSequence(){
   emptyTrellisArray();
   //rainbowPulse();
   //rainbowChaseBorder();
-  lcd.clear();
-  lcd.print("Congratulations!");
-  lcd.setCursor(0,1);
-  lcd.print("Module Complete");
-  fireworks();
+  if(playGame == true){
+    fireworks_gamePlay();
+  }
+  else{
+    lcd.clear();
+    lcd.print("Congratulations!");
+    lcd.setCursor(0,1);
+    lcd.print("Module Complete");
+    fireworks_singlePlay();
+  }
   for(int k = 0; k < trellis.pixels.numPixels(); k++){
     trellis.pixels.setPixelColor(k, noLight);
   }
   trellis.pixels.show();
   trellisShutDown();
+  fail_pass_LO = "pass";
   LO_finished = true;
 }
 
@@ -417,11 +449,12 @@ void cheatCode(int buttonPressed){
     Serial.println(cheatCodeNr);
     if(cheatCodeNr == 5){
       Serial.println("Cheat code used");
+      moduleFailed_name = "LO";
+      fail_pass_LO = "fail";
       trellisSum = 0;
+      cheatCodeNr = 0;
       emptyTrellisArray();
-      blinkRed();
-      trellisShutDown();
-      LO_finished = true;
+      moduleFailed();
     }
   }
   else{
@@ -681,14 +714,14 @@ void rainbowChaseBorder(){
   trellis.pixels.show();
 }
 
-void fireworks(){
+void fireworks_singlePlay(){
   for(int i = 0; i < fireworksColorsSize; i++){
     trellis.pixels.setPixelColor(5, fireworksColors[i]);
     trellis.pixels.setPixelColor(6, fireworksColors[i]);
     trellis.pixels.setPixelColor(9, fireworksColors[i]);
     trellis.pixels.setPixelColor(10, fireworksColors[i]);
     trellis.pixels.show();
-    delay(200);
+    delay(100);
     trellis.pixels.setPixelColor(0, fireworksColors[i]);
     trellis.pixels.setPixelColor(1, fireworksColors[i]);
     trellis.pixels.setPixelColor(2, fireworksColors[i]);
@@ -702,7 +735,33 @@ void fireworks(){
     trellis.pixels.setPixelColor(14, fireworksColors[i]);
     trellis.pixels.setPixelColor(15, fireworksColors[i]);
     trellis.pixels.show();
-    delay(200);
+    delay(100);
+  }
+  celebrateLights();
+}
+
+void fireworks_gamePlay(){
+  for(int i = 0; i < fireworksColorsSize; i++){
+    trellis.pixels.setPixelColor(5, fireworksColors[i]);
+    trellis.pixels.setPixelColor(6, fireworksColors[i]);
+    trellis.pixels.setPixelColor(9, fireworksColors[i]);
+    trellis.pixels.setPixelColor(10, fireworksColors[i]);
+    trellis.pixels.show();
+    delay(100);
+    trellis.pixels.setPixelColor(0, fireworksColors[i]);
+    trellis.pixels.setPixelColor(1, fireworksColors[i]);
+    trellis.pixels.setPixelColor(2, fireworksColors[i]);
+    trellis.pixels.setPixelColor(3, fireworksColors[i]);
+    trellis.pixels.setPixelColor(4, fireworksColors[i]);
+    trellis.pixels.setPixelColor(7, fireworksColors[i]);
+    trellis.pixels.setPixelColor(8, fireworksColors[i]);
+    trellis.pixels.setPixelColor(11, fireworksColors[i]);
+    trellis.pixels.setPixelColor(12, fireworksColors[i]);
+    trellis.pixels.setPixelColor(13, fireworksColors[i]);
+    trellis.pixels.setPixelColor(14, fireworksColors[i]);
+    trellis.pixels.setPixelColor(15, fireworksColors[i]);
+    trellis.pixels.show();
+    delay(100);
   }
 }
 
@@ -733,12 +792,20 @@ void blinkRed(){
     for(int j = 0; j < trellis.pixels.numPixels(); j++){
       trellis.pixels.setPixelColor(j, red);
     }
+    for(int l = 0; l < numStripPixels; l++){
+      strip.setPixelColor(l, red);
+    }
     trellis.pixels.show();
+    strip.show();
     delay(100);
     for(int k = 0; k < trellis.pixels.numPixels(); k++){
       trellis.pixels.setPixelColor(k, noLight);
     }
+    for(int m = 0; m < numStripPixels; m++){
+      strip.setPixelColor(m, noLight);
+    }
     trellis.pixels.show();
+    strip.show();
     delay(100);
   }
 }
@@ -753,21 +820,25 @@ void startSequence(){
   //Show red light behind toggle switch
   strip.clear();
   strip.show();
-  strip.fill(strip.Color(255, 0, 0), 20, 28);
+  strip.fill(strip.Color(255, 0, 0), 81, 86);
+  strip.fill(strip.Color(255, 0, 0), 0, 2);
   strip.show();
 }
 
 void startSequence_switchOn(){
   lcd.noAutoscroll();
-  Wire.beginTransmission(slaveAdr1);
+  /*Wire.beginTransmission(slaveAdr1);
   Wire.write(start);
-  Wire.endTransmission();
+  Wire.endTransmission();*/
 
   updateMainMenu();
   startUpLights();
 }
 
 void endSequence(){
+  fail_pass_FtC = "None";
+  fail_pass_RtN = "None";
+  fail_pass_LO = "None";
   timeForToggleOff = true;
   Wire.beginTransmission(slaveAdr1);
   Wire.write(tick);
@@ -804,6 +875,7 @@ void properEnding(){
   lcd.setCursor(4, 1);
   lcd.print("You won!");
   //Flashy lights
+  properEnding_lights();
   delay(3000);
   lcd.clear();
   lcd.setCursor(2, 0);
@@ -821,8 +893,10 @@ void trickEnding(){
   Wire.write(boom);
   Wire.endTransmission();
   lcd.clear();
+  lcd.setCursor(5,0);
   lcd.print("Boom.");
   //Make lights "explode"
+  trickEnding_lights();
   delay(3000);
   lcd.clear();
   lcd.setCursor(3, 0);
@@ -846,18 +920,113 @@ void startUpLights(){
     strip.show();
     delay(30);
   }
-  for(int j = brightness; j >= 0; j--){
+  for (int j = 255; j >= 0; j=j-5){
+    strip.fill(strip.ColorHSV(0,0,j), 0, numStripPixels);
+    strip.show();
+    delay(30);
+  }
+  for (int k = 0; k < 255; k=k+5){
+    strip.fill(strip.ColorHSV(0,0,k), 0, numStripPixels);
+    strip.show();
+    delay(30);
+  }
+  
+  moduleColors();
+  /*for(int j = stripBrightness; j >= 0; j--){
     strip.setBrightness(j);
     strip.fill(strip.Color(255, 255, 255), 0, numStripPixels);
     strip.show();
     delay(20);
   }
-  for(int k = 0; k < brightness; k++){
+  for(int k = 0; k < stripBrightness; k++){
     strip.setBrightness(k);
     strip.fill(strip.Color(255, 255, 255), 0, numStripPixels);
     strip.show();
     delay(20);
+  }*/
+}
+
+void moduleColors(){
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(247, 7, 7), 0, 3);       //Menu
+  strip.fill(strip.Color(0, 240, 240), 4, 16);    //LO
+  strip.fill(strip.Color(255, 64, 0), 21, 20);    //RtN
+  strip.fill(strip.Color(0, 0, 204), 42, 20);     //FtS
+  strip.fill(strip.Color(170, 7, 245), 63, 16);   //CtC
+  strip.fill(strip.Color(247, 7, 7), 81, 5);     //Menu
+  strip.show();
+}
+
+void celebrateLights(){
+  //for(int i = 0; i < 5; i++){
+    for (int j=0; j < 256; j=j+10) {     // cycle all 256 colors in the wheel
+      for (int q=0; q < 2; q++) {
+        for (uint16_t k=0; k < numStripPixels; k=k+2) {
+          strip.setPixelColor(k+q, Wheel( (k+j) % 255));    //turn every second pixel on
+        }
+        strip.show();
+
+        delay(30);
+
+        for(uint16_t k=0; k < numStripPixels; k=k+2) {
+          strip.setPixelColor(k+q, 0);        //turn every second pixel off
+        }
+        delay(30);
+      }
+    }
+  //}
+}
+
+void properEnding_lights(){
+  for(int i = 0; i < 5; i++){
+    for(int j = 0; j < 65536; j=j+20){
+      for(int k = 0; k < numStripPixels; k=k+2){
+        strip.setPixelColor(k, strip.ColorHSV(j, 255, 255));
+      }
+      for(int l = 1; l < numStripPixels; l=l+2){
+        strip.setPixelColor(l, noLight);
+      }
+      strip.show();
+      delay(10);
+      for(int m = 0; m < numStripPixels; m=m+2){
+        strip.setPixelColor(m, noLight);
+      }
+      for(int n = 1; n < numStripPixels; n=n+2){
+        strip.setPixelColor(n, strip.ColorHSV(j, 255, 255));
+      }
+      strip.show();
+      delay(10);
+    }
+    for(int k = 65536; k >= 0; k=k-20){
+      for(int l = 0; l < numStripPixels; l=l+2){
+        strip.setPixelColor(l, strip.ColorHSV(k, 255, 255));
+      }
+      for(int m = 1; m < numStripPixels; m=m+2){
+        strip.setPixelColor(m, noLight);
+      }
+      strip.show();
+      delay(10);
+      for(int n = 0; n < numStripPixels; n=n+2){
+        strip.setPixelColor(n, noLight);
+      }
+      for(int o = 1; o < numStripPixels; o=o+2){
+        strip.setPixelColor(o, strip.ColorHSV(k, 255, 255));
+      }
+      strip.show();
+      delay(10);
+    }
   }
+}
+
+void trickEnding_lights(){
+  for(int i = 0; i < 255; i++){
+    strip.fill(strip.Color(255, i, 0), 0, numStripPixels);
+    strip.show();
+    delay(10);
+  }
+  strip.clear();
+  strip.show();
 }
 
 /*void executeReset(){
@@ -865,6 +1034,7 @@ void startUpLights(){
 }*/
 
 void updateMainMenu(){
+  moduleFinished = false;
   switch(mainMenu){
     case 0:
       mainMenu = 1;
@@ -1235,9 +1405,14 @@ void LO_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Lights On");
   LO_func();
-  delay(3000);
-  strip.fill(strip.Color(0, 0, 255), 0, numStripPixels);
-  strip.show();
+  /*if(fail_pass_LO == "pass"){
+    modulePassed();
+  }
+  else if(fail_pass_LO == "fail"){
+    moduleFailed();
+  }*/
+  fail_pass_LO = "None";
+  moduleColors();
   updateMainMenu();
 }
 
@@ -1247,13 +1422,14 @@ void RtN_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Rec. the Note");
   RtN_func();
-  lcd.clear();
-  lcd.print("Congratulations!");
-  lcd.setCursor(0,1);
-  lcd.print("Module Complete");
-  delay(3000);
-  strip.fill(strip.Color(0, 0, 255), 0, numStripPixels);
-  strip.show();
+  if(fail_pass_RtN == "pass"){
+    modulePassed();
+  }
+  else if(fail_pass_RtN == "fail"){
+    moduleFailed();
+  }
+  fail_pass_RtN = "None";
+  moduleColors();
   updateMainMenu();
 }
 
@@ -1263,13 +1439,14 @@ void FtS_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Flip the Switch");
   FtS_func();
-  lcd.clear();
-  lcd.print("Congratulations!");
-  lcd.setCursor(0,1);
-  lcd.print("Module Complete");
-  delay(3000);
-  strip.fill(strip.Color(0, 0, 255), 0, numStripPixels);
-  strip.show();
+  if(fail_pass_FtC == "pass"){
+    modulePassed();
+  }
+  else if(fail_pass_FtC == "fail"){
+    moduleFailed();
+  }
+  fail_pass_FtC = "None";
+  moduleColors();
   updateMainMenu();
 }
 
@@ -1279,13 +1456,14 @@ void CtC_firstModule_singlePlay(){
   lcd.setCursor(0,1);
   lcd.print("Crack the Code");
   CtC_func();
-  lcd.clear();
-  lcd.print("Congratulations!");
-  lcd.setCursor(0,1);
-  lcd.print("Module Complete");
-  delay(3000);
-  strip.fill(strip.Color(0, 0, 255), 0, numStripPixels);
-  strip.show();
+  if(fail_pass_FtC == "pass"){
+    modulePassed();
+  }
+  else if(fail_pass_FtC == "fail"){
+    moduleFailed();
+  }
+  fail_pass_FtC = "None";
+  moduleColors();
   updateMainMenu();
 }
 
@@ -1293,73 +1471,232 @@ void LO_firstModule_gamePlay(){
   lcd.clear();
   lcd.print("0 %");
   LO_func();
-  progressBar_startStopPoint(0, 25);
-  FtS_func();
-  progressBar_startStopPoint(25, 50);
-  CtC_func();
-  progressBar_startStopPoint(50, 75);
-  RtN_func();
-  progressBar_startStopPoint(75, 100);
-  playGame = false;
-  countdownTimerOn = true;
-  delay(4000);
-  endSequence();
+  if(fail_pass_LO == "pass"){
+    progressBar_startStopPoint(0, 25);
+    FtS_func();
+    if(fail_pass_FtC == "pass"){
+      fail_pass_FtC = "None";
+      progressBar_startStopPoint(25, 50);
+      RtN_func();
+      if(fail_pass_RtN == "pass"){
+        progressBar_startStopPoint(50, 75);
+        CtC_func();
+        if(fail_pass_FtC == "pass"){
+          fail_pass_FtC = "None";
+          progressBar_startStopPoint(75, 100);
+          playGame = false;
+          countdownTimerOn = true;
+          delay(4000);
+          endSequence();
+        }
+        else if (fail_pass_FtC == "fail"){
+          fail_pass_LO = "None";
+          fail_pass_FtC = "None";
+          fail_pass_RtN = "None";
+          moduleFailed();
+          moduleColors();
+          updateMainMenu();
+        }
+      }
+      else if(fail_pass_RtN == "pass"){
+        fail_pass_LO = "None";
+        fail_pass_FtC = "None";
+        fail_pass_RtN = "None";
+        moduleFailed();
+        moduleColors();
+        updateMainMenu();
+      }
+    }
+    else if(fail_pass_FtC == "fail"){
+      fail_pass_LO = "None";
+      fail_pass_FtC = "None";
+      moduleFailed();
+      moduleColors();
+      updateMainMenu();
+    }
+  }
+  else if(fail_pass_LO == "fail"){
+    fail_pass_LO = "None";
+    moduleFailed();
+    moduleColors();
+    updateMainMenu();
+  }
 }
 
 void RtN_firstModule_gamePlay(){
   lcd.clear();
   lcd.print("0 %");
   RtN_func();
-  progressBar_startStopPoint(0, 25);
-  LO_func();
-  progressBar_startStopPoint(25, 50);
-  FtS_func();
-  progressBar_startStopPoint(50, 75);
-  CtC_func();
-  progressBar_startStopPoint(75, 100);
-  playGame = false;
-  countdownTimerOn = true;
-  delay(4000);
-  endSequence();
+  if(fail_pass_RtN == "pass"){
+    progressBar_startStopPoint(0, 25);
+    CtC_func();
+    if(fail_pass_FtC == "pass"){
+      fail_pass_FtC = "None";
+      progressBar_startStopPoint(25, 50);
+      LO_func();
+      if(fail_pass_LO == "pass"){
+        progressBar_startStopPoint(50, 75);
+        FtS_func();
+        if(fail_pass_FtC == "pass"){
+          fail_pass_FtC = "None";
+          progressBar_startStopPoint(75, 100);
+          playGame = false;
+          countdownTimerOn = true;
+          delay(4000);
+          endSequence();
+        }
+        else if (fail_pass_FtC == "fail"){
+          fail_pass_LO = "None";
+          fail_pass_FtC = "None";
+          fail_pass_RtN = "None";
+          moduleFailed();
+          moduleColors();
+          updateMainMenu();
+        }
+      }
+      else if(fail_pass_LO == "pass"){
+        fail_pass_LO = "None";
+        fail_pass_FtC = "None";
+        fail_pass_RtN = "None";
+        moduleFailed();
+        moduleColors();
+        updateMainMenu();
+      }
+    }
+    else if(fail_pass_FtC == "fail"){
+      fail_pass_LO = "None";
+      fail_pass_RtN = "None";
+      fail_pass_FtC = "None";
+      moduleFailed();
+      moduleColors();
+      updateMainMenu();
+    }
+  }
+  else if(fail_pass_RtN == "fail"){
+    fail_pass_RtN = "None";
+    moduleFailed();
+    moduleColors();
+    updateMainMenu();
+  }
 }
 
 void FtS_firstModule_gamePlay(){
   lcd.clear();
   lcd.print("0 %");
   FtS_func();
-  progressBar_startStopPoint(0, 25);
-  CtC_func();
-  progressBar_startStopPoint(25, 50);
-  RtN_func();
-  progressBar_startStopPoint(50, 75);
-  LO_func();
-  progressBar_startStopPoint(75, 100);
-  playGame = false;
-  countdownTimerOn = true;
-  delay(4000);
-  endSequence();
+  if(fail_pass_FtC == "pass"){
+    fail_pass_FtC = "None";
+    progressBar_startStopPoint(0, 25);
+    RtN_func();
+    if(fail_pass_RtN == "pass"){
+      progressBar_startStopPoint(25, 50);
+      CtC_func();
+      if(fail_pass_FtC == "pass"){
+        fail_pass_FtC = "None";
+        progressBar_startStopPoint(50, 75);
+        LO_func();
+        if(fail_pass_LO == "pass"){
+          progressBar_startStopPoint(75, 100);
+          playGame = false;
+          countdownTimerOn = true;
+          delay(4000);
+          endSequence();
+        }
+        else if (fail_pass_LO == "fail"){
+          fail_pass_LO = "None";
+          fail_pass_FtC = "None";
+          fail_pass_RtN = "None";
+          moduleFailed();
+          moduleColors();
+          updateMainMenu();
+        }
+      }
+      else if(fail_pass_FtC == "pass"){
+        fail_pass_FtC = "None";
+        fail_pass_RtN = "None";
+        moduleFailed();
+        moduleColors();
+        updateMainMenu();
+      }
+    }
+    else if(fail_pass_RtN == "fail"){
+      fail_pass_FtC = "None";
+      fail_pass_RtN = "None";
+      moduleFailed();
+      moduleColors();
+      updateMainMenu();
+    }
+  }
+  else if(fail_pass_FtC == "fail"){
+    fail_pass_FtC = "None";
+    moduleFailed();
+    moduleColors();
+    updateMainMenu();
+  }
 }
 
 void CtC_firstModule_gamePlay(){
   lcd.clear();
   lcd.print("0 %");
   CtC_func();
-  progressBar_startStopPoint(0, 25);
-  RtN_func();
-  progressBar_startStopPoint(25, 50);
-  LO_func();
-  progressBar_startStopPoint(50, 75);
-  FtS_func();
-  progressBar_startStopPoint(75, 100);
-  playGame = false;
-  countdownTimerOn = true;
-  delay(4000);
-  endSequence();
+  if(fail_pass_FtC == "pass"){
+    fail_pass_FtC = "None";
+    progressBar_startStopPoint(0, 25);
+    LO_func();
+    if(fail_pass_LO == "pass"){
+      progressBar_startStopPoint(25, 50);
+      FtS_func();
+      if(fail_pass_FtC == "pass"){
+        fail_pass_FtC = "None";
+        progressBar_startStopPoint(50, 75);
+        RtN_func();
+        if(fail_pass_RtN == "pass"){
+          progressBar_startStopPoint(75, 100);
+          playGame = false;
+          countdownTimerOn = true;
+          delay(4000);
+          endSequence();
+        }
+        else if (fail_pass_RtN == "fail"){
+          fail_pass_LO = "None";
+          fail_pass_FtC = "None";
+          fail_pass_RtN = "None";
+          moduleFailed();
+          moduleColors();
+          updateMainMenu();
+        }
+      }
+      else if(fail_pass_FtC == "fail"){
+        fail_pass_LO = "None";
+        fail_pass_FtC = "None";
+        moduleFailed();
+        moduleColors();
+        updateMainMenu();
+      }
+    }
+    else if(fail_pass_LO == "fail"){
+      fail_pass_LO = "None";
+      fail_pass_FtC = "None";
+      moduleFailed();
+      moduleColors();
+      updateMainMenu();
+    }
+  }
+  else if(fail_pass_FtC == "fail"){
+    fail_pass_FtC = "None";
+    moduleFailed();
+    moduleColors();
+    updateMainMenu();
+  }
 }
 
 void LO_func(){
   moduleChosen = true;
   Serial.println("LO function running");
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(0, 240, 240), 4, 16);    //LO
+  strip.show();
   trellisStartup();
   trellisStartupAnimation();
   while(!LO_finished){
@@ -1372,6 +1709,10 @@ void LO_func(){
 void RtN_func(){
   moduleChosen = true;
   Serial.println("RtN function running");
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(255, 64, 0), 21, 20);    //RtN
+  strip.show();
   delay(100);
   Wire.beginTransmission(slaveAdr1);
   Wire.write(RtN);
@@ -1382,12 +1723,22 @@ void RtN_func(){
   moduleFinished = false;
   //Code for if the module isn't connected:
   /*Serial.println("RtN function running");
-  delay(2000);*/
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(255, 64, 0), 21, 20);    //RtN
+  strip.show();
+  fail_pass_RtN = "pass";
+  delay(2000);
+  moduleFinished = false;*/
 }
 
 void FtS_func(){
   moduleChosen = true;
   Serial.println("FtS function running");
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(0, 0, 204), 42, 20);     //FtS
+  strip.show();
   delay(100);
   Wire.beginTransmission(slaveAdr2);
   Wire.write(FtS);
@@ -1396,14 +1747,27 @@ void FtS_func(){
     requestSlave2();
   }
   moduleFinished = false;
+  /*Wire.beginTransmission(slaveAdr2);
+  Wire.write(bug_fix);
+  Wire.endTransmission();*/
   //Code for if the module isn't connected:
   /*Serial.println("FtS function running");
-  delay(2000);*/
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(0, 0, 204), 42, 20);     //FtS
+  strip.show();
+  fail_pass_FtC = "pass";
+  delay(2000);
+  moduleFinished = false;*/
 }
 
 void CtC_func(){
   moduleChosen = true;
   Serial.println("CtC function running");
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(170, 7, 245), 63, 16);   //CtC
+  strip.show();
   delay(100);
   Wire.beginTransmission(slaveAdr2);
   Wire.write(CtC);
@@ -1411,9 +1775,16 @@ void CtC_func(){
   while(!moduleFinished){
     requestSlave2();
   }
+  moduleFinished = false;
   //Code for if the module isn't connected:
   /*Serial.println("CtC function running");
-  delay(2000);*/
+  strip.clear();
+  strip.show();
+  strip.fill(strip.Color(170, 7, 245), 63, 16);   //CtC
+  strip.show();
+  fail_pass_FtC = "pass";
+  delay(2000);
+  moduleFinished = false;*/
 }
 
 void requestSlave1(){
@@ -1421,7 +1792,15 @@ void requestSlave1(){
   masterReceiveSlave1 = Wire.read();
   if(masterReceiveSlave1 == 1){
     Serial.println("RtN module done!");
+    fail_pass_RtN = "pass";
     moduleFinished = true;
+  }
+  else if(masterReceiveSlave1 == 10){
+    Serial.println("User failed to complete RtN");
+    moduleFailed_name = "RtN";
+    fail_pass_RtN = "fail";
+    moduleFinished = true;
+    //moduleFailed();
   }
   delay(500);
 }
@@ -1434,26 +1813,117 @@ void requestSlave2(){
   }*/
   if(masterReceiveSlave2 == 2){
     Serial.println("FtS module done!");
+    fail_pass_FtC = "pass";
+    moduleFinished = true;
   }
   else if(masterReceiveSlave2 == 3){
     Serial.println("CtC module done!");
+    fail_pass_FtC = "pass";
+    moduleFinished = true;
+  }
+  else if(masterReceiveSlave2 == 5){
+    Serial.println("User failed to complete FtS or CtC");
+    moduleFailed_name = "FtC";
+    fail_pass_FtC = "fail";
+    //moduleFailed();
+    moduleFinished = true;
   }
   delay(500);
 }
 
-void noSignal_slave1(){
+/*void noSignal_slave1(){
   requestSlave1();
 }
 
 void noSignal_slave2(){
   requestSlave2();
+}*/
+
+void modulePassed(){
+  lcd.clear();
+  lcd.print("Congratulations!");
+  lcd.setCursor(0,1);
+  lcd.print("Module Complete");
+  
+  celebrateLights();
+  //delay(1000);
+}
+
+void moduleFailed(){
+  strip.clear();
+  strip.show();
+  if(moduleFailed_name == "LO"){
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("You gave up!");
+    blinkRed();
+    trellisShutDown();
+    LO_finished = true;
+    delay(1000);
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("Try again!");
+    moduleFailed_name = "None";
+  }
+  else if(moduleFailed_name = "RtN"){
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("You gave up!");
+    moduleFailed_lights();
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("Try again!");
+    moduleFailed_name = "None";
+  }
+  else if(moduleFailed_name = "FtC"){
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("You failed!");
+    lcd.setCursor(0,1);
+    lcd.print("Too many tries");
+    moduleFailed_lights();
+    delay(3000);
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("Try again!");
+    moduleFailed_name = "None";
+  }
+  delay(1000);
+  //moduleColors();
+  //updateMainMenu();
+}
+
+void moduleFailed_lights(){
+  for(int i = 0; i < 5; i++){
+    /*for (int j = 255; j >= 0; j=j-10){
+      strip.fill(strip.ColorHSV(0,255,j), 0, numStripPixels);
+      strip.show();
+      delay(10);
+    }
+    for (int k = 0; k < 255; k=k+10){
+      strip.fill(strip.ColorHSV(0,255,k), 0, numStripPixels);
+      strip.show();
+      delay(10);
+    }*/
+    for(int j = 0; j < numStripPixels; j++){
+      strip.setPixelColor(j, red);
+    }
+    strip.show();
+    delay(100);
+    for(int k = 0; k < numStripPixels; k++){
+      strip.setPixelColor(k, noLight);
+    }
+    strip.show();
+    delay(100);
+  }
 }
 
 void progressBar_startStopPoint(int pb_startPoint, int pb_stopPoint){
   for(int i = pb_startPoint; i <= pb_stopPoint; i++){
     lcd.setCursor(0,0);
     lcd.print(i);
-    lcd.print("%"); 
+    lcd.print(" %"); 
     lcd.print("   ");
     updateProgressBar(i, 100, 1);
     delay(100);

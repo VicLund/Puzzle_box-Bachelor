@@ -112,7 +112,7 @@ int U = 0;
 int V = 0;
 
 //set the volume to starter value (between 0 and 30)
-int volume = 20;
+int volume = 25;
 
 unsigned long debounceDelay = 30;
 unsigned long lastDebounceTimeNote = 0;
@@ -165,9 +165,7 @@ void setup()
 {
   Serial1.begin(9600);
   Serial.begin(115200);
-  delay(3000);
-  Serial.println("setup1");
-  Wire.begin(0x10);
+  Wire.begin(0x78);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
 
@@ -198,7 +196,6 @@ void setup()
     }
   }
   Serial.println(F("DFPlayer Mini online."));
-
   myDFPlayer.volume(volume);  //Set volume value to the volume int
 }
 
@@ -229,7 +226,7 @@ void loop()
     clearLEDs();
   }
   if (V == 2) {
-    clearLEDs();
+    clearLED();
   }
 }
 
@@ -249,7 +246,7 @@ void clearLED() {
 
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
-  if (receiveFromMaster == 2) {
+  if (receiveFromMaster == 1) {
     Serial.println("RtN running");
     U = 1;
   }
@@ -282,12 +279,13 @@ void requestEvent() {
       Wire.write(sendToMaster);
       sendToMaster = 0;
     }
-    else if (sendToMaster == 5) {
+    else if (sendToMaster == 10) {
       Serial.println("Sent 'Gave up RtN' to Master");
       Wire.write(sendToMaster);
       sendToMaster = 0;
     }
     melodiesFinished = false;
+    sendToMaster = 0;
     Serial.println("in request event");
   }
 }
@@ -303,8 +301,6 @@ void debounceup() {
     if (up_reading != up_state) {
       up_state = up_reading;
       if (up_state == LOW) {
-        stripProgress.setPixelColor(0, 0xFF0000);
-        stripProgress.show();
         volume = volume + 1; //increase the volume variable
         if (volume > 30) { //check if the volume already is 30 and make sure it doesn't get higher
           volume = 30;
@@ -328,8 +324,6 @@ void debouncedown() {
     if (down_reading != down_state) {
       down_state = down_reading;
       if (down_state == LOW) {
-        stripProgress.setPixelColor(0, 0x00FF00);
-        stripProgress.show();
         volume = volume - 1; //decrease the volume variable
         if (volume < 0) { //check if the volume already is 0 and make sure it doesn't get negative
           volume = 0;
@@ -420,15 +414,6 @@ void debounceD() {
     if (D_reading != D_state) {
       D_state = D_reading;
       if (D_state == LOW) {
-        Serial.println("D");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(2); //play the D note
         if (R11 == 1 and R12 == 0) { //check if user press the correct button combination
           R12 = 1;
@@ -451,6 +436,20 @@ void debounceD() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
+        Serial.println("G");
+        Serial.print(S1);
+        Serial.print(S2);
+        Serial.print(S3);
+        Serial.print(S4);
+        Serial.print(S5);
+        Serial.print(S6);
+        Serial.print(S7);
+        Serial.print(S8);
+        Serial.print(S9);
+        Serial.print(S10);
+        Serial.print(S11);
+        Serial.print(S12);
+        Serial.print(S13);
       }
     }
   }
@@ -468,15 +467,6 @@ void debounceE() {
     if (E_reading != E_state) {
       E_state = E_reading;
       if (E_state == LOW) {
-        Serial.println("E");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(3); //play the E note
         if (R9 == 1 and R10 == 0) { //check if user press the correct button combination
           R10 = 1;
@@ -516,15 +506,6 @@ void debounceF() {
     if (F_reading != F_state) {
       F_state = F_reading;
       if (F_state == LOW) {
-        Serial.println("F");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(4); //play the F note
         if (R7 == 1 and R8 == 0) { //check if user press the correct button combination
           R8 = 1;
@@ -547,6 +528,20 @@ void debounceF() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
+        Serial.println("S");
+        Serial.print(S1);
+        Serial.print(S2);
+        Serial.print(S3);
+        Serial.print(S4);
+        Serial.print(S5);
+        Serial.print(S6);
+        Serial.print(S7);
+        Serial.print(S8);
+        Serial.print(S9);
+        Serial.print(S10);
+        Serial.print(S11);
+        Serial.print(S12);
+        Serial.print(S13);
       }
     }
   }
@@ -564,15 +559,6 @@ void debounceG() {
     if (G_reading != G_state) {
       G_state = G_reading;
       if (G_state == LOW) {
-        Serial.println("G");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(5); //play the G note
         if (R2 == 1 and R3 == 0) { //check if user press the correct button combination
           R3 = 1;
@@ -613,6 +599,21 @@ void debounceG() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
+
+        Serial.println("G");
+        Serial.print(S1);
+        Serial.print(S2);
+        Serial.print(S3);
+        Serial.print(S4);
+        Serial.print(S5);
+        Serial.print(S6);
+        Serial.print(S7);
+        Serial.print(S8);
+        Serial.print(S9);
+        Serial.print(S10);
+        Serial.print(S11);
+        Serial.print(S12);
+        Serial.print(S13);
       }
     }
   }
@@ -630,15 +631,6 @@ void debounceA() {
     if (A_reading != A_state) {
       A_state = A_reading;
       if (A_state == LOW) {
-        Serial.println("A");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(6); //play the A note
         if (R4 == 1 and R5 == 0) { //check if user press the correct button combination
           R5 = 1;
@@ -664,6 +656,20 @@ void debounceA() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
+        Serial.println("A");
+        Serial.print(S1);
+        Serial.print(S2);
+        Serial.print(S3);
+        Serial.print(S4);
+        Serial.print(S5);
+        Serial.print(S6);
+        Serial.print(S7);
+        Serial.print(S8);
+        Serial.print(S9);
+        Serial.print(S10);
+        Serial.print(S11);
+        Serial.print(S12);
+        Serial.print(S13);
       }
     }
   }
@@ -681,15 +687,6 @@ void debounceB() {
     if (B_reading != B_state) {
       B_state = B_reading;
       if (B_state == LOW) {
-        Serial.println("B");
-        Serial.print(G1);
-        Serial.print(G2);
-        Serial.print(G3);
-        Serial.print(G4);
-        Serial.print(G5);
-        Serial.print(G6);
-        Serial.print(G7);
-        Serial.print(G8);
         myDFPlayer.play(7); //play the B note
         if (Z1 == 1 and Z2 == 0) { //check if user press the correct button combination
           Z2 = 1;
@@ -715,6 +712,20 @@ void debounceB() {
           Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0, Z5 = 0, Z6 = 0, Z7 = 0, Z8 = 0, Z9 = 0, Z10 = 0, Z11 = 0, Z12 = 0, Z13 = 0;
           G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0;
         }
+        Serial.println("B");
+        Serial.print(S1);
+        Serial.print(S2);
+        Serial.print(S3);
+        Serial.print(S4);
+        Serial.print(S5);
+        Serial.print(S6);
+        Serial.print(S7);
+        Serial.print(S8);
+        Serial.print(S9);
+        Serial.print(S10);
+        Serial.print(S11);
+        Serial.print(S12);
+        Serial.print(S13);
       }
     }
   }
@@ -815,14 +826,13 @@ void total() {
 
 void giveup(){
   if (G1 == 1 && G2 == 1 && G3 == 1 && G4 == 1 && G5 == 1 && G6 == 1 && G7 == 1 && G8 == 1){
-    melodiesFinished = true;
-    sendToMaster = 5;
-    T1 = 0, T2 = 0, T3 = 0; //reset the checks for the three melodies
+    G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0; //reset the checks for the three melodies
     U = 0; //when U = 0 the program knows that the user is done with this module
-    V = 2;
+    V = 2; 
+    melodiesFinished = true;
+    sendToMaster = 10;
     stripProgress.fill(0x00FF00), 0, LED_COUNT_Progress;
     stripProgress.show();
-    Serial.println("give up!");
   }
 }
 

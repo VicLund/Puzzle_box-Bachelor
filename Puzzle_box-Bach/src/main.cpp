@@ -1865,7 +1865,7 @@ void moduleFailed(){
     lcd.print("Try again!");
     moduleFailed_name = "None";
   }
-  else if(moduleFailed_name = "RtN"){
+  else if(moduleFailed_name == "RtN"){
     lcd.clear();
     lcd.setCursor(2,0);
     lcd.print("You gave up!");
@@ -1876,7 +1876,7 @@ void moduleFailed(){
     lcd.print("Try again!");
     moduleFailed_name = "None";
   }
-  else if(moduleFailed_name = "FtC"){
+  else if(moduleFailed_name == "FtC"){
     lcd.clear();
     lcd.setCursor(2,0);
     lcd.print("You failed!");

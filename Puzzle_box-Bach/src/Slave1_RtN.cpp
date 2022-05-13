@@ -373,13 +373,13 @@ void debouncec() {
       c_state = c_reading;
       if (c_state == LOW) {
         myDFPlayer.play(1); //play the c note, the file on the SD card with name 0001
-        G1 = 1; //make sure that G1 = 1 no matter what button is pressed before it
-        R1 = 1; //make sure that R1 = 1 no matter what button is pressed before it
         if (R1 == 1 and R2 == 0) { //if c is pressed after R1 = 1, set R2 = 1
           R2 = 1;
+          G1 = 1;
         }
         else if (R13 == 1 and R14 == 0) { //if c is pressed after R13 = 1, set R14 = 1
           R14 = 1;
+          G1 = 1;
         }
         else { //Wrong button, reset all variables
           R1 = 1, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -522,21 +522,25 @@ void debounceG() {
       G_state = G_reading;
       if (G_state == LOW) {
         myDFPlayer.play(5); //play the G note
-        S1 = 1; //make sure that S1 = 1 no matter what button is pressed before it
         if (R2 == 1 and R3 == 0) { //check if user press the correct button combination
           R3 = 1;
+          S1 = 1;
         }
         else if (R3 == 1 and R4 == 0) {
           R4 = 1;
+          S1 = 1;
         }
         else if (R6 == 1 and R7 == 0) {
           R7 = 1;
+          S1 = 1;
         }
         else if (Z5 == 1 and Z6 == 0) {
           Z6 = 1;
+          S1 = 1;
         }
         else if (Z10 == 1 and Z11 == 0) {
           Z11 = 1;
+          S1 = 1;
         }
         else if (S1 == 1 and S2 == 0) {
           S2 = 1;
@@ -555,6 +559,7 @@ void debounceG() {
         }
         else if (G1 == 1 and G2 == 0){
           G2 = 1;
+          S1 = 1;
         }
         else { //Wrong button, reset all variables
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
@@ -664,7 +669,6 @@ void debounceC() {
       C_state = C_reading;
       if (C_state == LOW) {
         myDFPlayer.play(8); //play the C note
-        Z1 = 1; //make sure that Z1 = 1 no matter what button is pressed before it
         if (Z2 == 1 and Z3 == 0) { //check if user press the correct button combination
           Z3 = 1;
         }
@@ -676,6 +680,7 @@ void debounceC() {
         }
         else if (G7 == 1 and G8 == 0){
           G8 = 1;
+          Z1 = 1;
         }
         else { //Wrong button, reset all variables
           R1 = 0, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;

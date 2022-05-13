@@ -241,15 +241,14 @@ void loop()
   }
 }
 
-void clearLEDs() {
-  delay(10000); //Wait for 10 seconds
+void clearLED() {
+  delay(5000); //Wait for 5 seconds
   stripProgress.clear(); //clear the Leds
   stripProgress.show();
   V = 0; // Set V back to 0
 }
-
-void clearLED() {
-  delay(5000); //Wait for 5 seconds
+void clearLEDs() {
+  delay(10000); //Wait for 10 seconds
   stripProgress.clear(); //clear the Leds
   stripProgress.show();
   V = 0; // Set V back to 0

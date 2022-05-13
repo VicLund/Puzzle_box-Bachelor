@@ -381,6 +381,9 @@ void debouncec() {
           R14 = 1;
           G1 = 1;
         }
+        else if (R1 == 1 and R2 == 2 and R3 == 0){
+          G1 = 1;
+        }
         else { //First/Wrong button, reset all variables
           R1 = 1, R2 = 0, R3 = 0, R4 = 0, R5 = 0, R6 = 0, R7 = 0, R8 = 0, R9 = 0, R10 = 0, R11 = 0, R12 = 0, R13 = 0, R14 = 0;
           S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0, S8 = 0, S9 = 0, S10 = 0, S11 = 0, S12 = 0, S13 = 0;

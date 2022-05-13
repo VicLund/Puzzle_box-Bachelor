@@ -743,7 +743,7 @@ void total() {
 
 void giveup(){
   if (G1 == 1 && G2 == 1 && G3 == 1 && G4 == 1 && G5 == 1 && G6 == 1 && G7 == 1 && G8 == 1){
-    G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0; //reset the checks for the three melodies
+    G1 = 0, G2 = 0, G3 = 0, G4 = 0, G5 = 0, G6 = 0, G7 = 0, G8 = 0; //reset the checks for the give up sequence
     U = 0; //when U = 0 the program knows that the user is done with this module
     V = 2; //set V = 2 to add the delay before the LEDs turn off
     melodiesFinished = true; //Set melodiesFinished to true, so the program goes into the while loop in requestEvent

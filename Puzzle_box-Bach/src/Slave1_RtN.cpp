@@ -346,13 +346,13 @@ void debounceplay() {
     if (play_reading != play_state) {
       play_state = play_reading;
       if (play_state == LOW) {
-        if (T1 == 0 and T2 == 0) { //check if the first melody is done
+        if (T1 == 0 and T2 == 0) { //check if the first/second melody is done
           myDFPlayer.play(13); //play the first melody again
         }
-        else if (T1 == 1 and T2 == 0) { //check if the second melody is done
+        else if (T1 == 1 and T2 == 0) { //check if the first/second melody is done
           myDFPlayer.play(14); //play the second melody again
         }
-        else if (T1 == 1 and T2 == 1) { //check if the third melody is done
+        else if (T1 == 1 and T2 == 1) { //check if the first/second melody is done
           myDFPlayer.play(19); //play the third melody again
         }
       }

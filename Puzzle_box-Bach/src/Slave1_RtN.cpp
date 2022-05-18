@@ -116,7 +116,7 @@ int U = 0;
 int V = 0;
 
 //set the volume to starter value (between 0 and 30)
-int volume = 25;
+int volume = 20;
 
 //Debounce variables
 unsigned long debounceDelay = 30;

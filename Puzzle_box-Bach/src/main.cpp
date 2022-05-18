@@ -284,9 +284,9 @@ TrellisCallback blink(keyEvent evt){
     checkFinished(buttonPressed);
     cheatCode(buttonPressed);
     
-  } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
+  } /*else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
   // or is the pad released?
-  }
+  }*/
 
   // Turn on/off the neopixels!
   trellis.pixels.show();
@@ -371,7 +371,8 @@ void trellisStartup(){
   //activate all keys and set callbacks
   for(int i=0; i<16; i++){
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_RISING);
-    trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING);
+    // What happens if we don't activate the falling edge?
+    //trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING);
     trellis.registerCallback(i, blink);
   }
 }
@@ -403,8 +404,8 @@ void checkFinished(int buttonPressed){
   for(int i = 0; i < trellisArraySize; i++){
     trellisSum += trellisArray[i];
   }
-  Serial.print("Sum of trellis array: ");
-  Serial.println(trellisSum);
+  //Serial.print("Sum of trellis array: ");
+  //Serial.println(trellisSum);
   if(trellisSum == 16){
     Serial.println("You're finished");
     finishSequence();
@@ -820,22 +821,24 @@ void startSequence(){
   //Show red light behind toggle switch
   strip.clear();
   strip.show();
-  strip.fill(strip.Color(255, 0, 0), 81, 86);
-  strip.fill(strip.Color(255, 0, 0), 0, 2);
+  strip.fill(strip.Color(255, 0, 0), 81, 5);
+  strip.fill(strip.Color(255, 0, 0), 0, 3);
   strip.show();
 }
 
 void startSequence_switchOn(){
   lcd.noAutoscroll();
-  /*Wire.beginTransmission(slaveAdr1);
+  Wire.beginTransmission(slaveAdr1);
   Wire.write(start);
-  Wire.endTransmission();*/
+  Wire.endTransmission();
 
   updateMainMenu();
   startUpLights();
 }
 
 void endSequence(){
+  strip.clear();
+  strip.show();
   fail_pass_FtC = "None";
   fail_pass_RtN = "None";
   fail_pass_LO = "None";
@@ -845,6 +848,7 @@ void endSequence(){
   Wire.endTransmission();
   delay(1000);
   lcd.clear();
+  lcd.setCursor(5,0);
   lcd.print("Uh Oh!");
   while(countdownTimerOn){
     currentTime = millis();
@@ -855,8 +859,12 @@ void endSequence(){
         lcd.setCursor(7, 1);
         lcd.print(totalSeconds);
         debounceToggleSwitch();
+        strip.fill(strip.Color(255,0,0), 0, numStripPixels);
+        strip.show();
       }
       debounceToggleSwitch();
+      strip.clear();
+      strip.show();
     }
     debounceToggleSwitch();
   }
@@ -979,8 +987,8 @@ void celebrateLights(){
 }
 
 void properEnding_lights(){
-  for(int i = 0; i < 5; i++){
-    for(int j = 0; j < 65536; j=j+20){
+
+    for(int j = 0; j < 65536; j=j+2500){
       for(int k = 0; k < numStripPixels; k=k+2){
         strip.setPixelColor(k, strip.ColorHSV(j, 255, 255));
       }
@@ -988,7 +996,7 @@ void properEnding_lights(){
         strip.setPixelColor(l, noLight);
       }
       strip.show();
-      delay(10);
+      delay(100);
       for(int m = 0; m < numStripPixels; m=m+2){
         strip.setPixelColor(m, noLight);
       }
@@ -996,9 +1004,9 @@ void properEnding_lights(){
         strip.setPixelColor(n, strip.ColorHSV(j, 255, 255));
       }
       strip.show();
-      delay(10);
+      delay(100);
     }
-    for(int k = 65536; k >= 0; k=k-20){
+    for(int k = 65536; k >= 0; k=k-2500){
       for(int l = 0; l < numStripPixels; l=l+2){
         strip.setPixelColor(l, strip.ColorHSV(k, 255, 255));
       }
@@ -1006,7 +1014,7 @@ void properEnding_lights(){
         strip.setPixelColor(m, noLight);
       }
       strip.show();
-      delay(10);
+      delay(100);
       for(int n = 0; n < numStripPixels; n=n+2){
         strip.setPixelColor(n, noLight);
       }
@@ -1014,9 +1022,8 @@ void properEnding_lights(){
         strip.setPixelColor(o, strip.ColorHSV(k, 255, 255));
       }
       strip.show();
-      delay(10);
+      delay(100);
     }
-  }
 }
 
 void trickEnding_lights(){

@@ -1,16 +1,9 @@
 
-#include <Arduino.h>
-#include <SPI.h>
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_LEDBackpack.h>
-#include <Adafruit_NeoPixel.h>
-#include <Adafruit_BusIO_Register.h>
-#include <Adafruit_I2CRegister.h>
-#include <Adafruit_SPIDevice.h>
-#include <Adafruit_I2CDevice.h>
+#include <Arduino.h>
 #include <TM1637Display.h>
+#include <Adafruit_NeoPixel.h>
+#include <Adafruit_LEDBackpack.h>
 
 // Watchdog interrupt Reset 
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)

@@ -1,15 +1,9 @@
-#include <Arduino.h>
-#include <SPI.h>
+
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_LEDBackpack.h>
-#include <Adafruit_NeoPixel.h>
-#include <Adafruit_BusIO_Register.h>
-#include <Adafruit_I2CRegister.h>
-#include <Adafruit_SPIDevice.h>
-#include <Adafruit_I2CDevice.h>
+#include <Arduino.h>
 #include <TM1637Display.h>
+#include <Adafruit_NeoPixel.h>
+#include <Adafruit_LEDBackpack.h>
 
 // Watchdog interrupt Reset 
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
@@ -21,6 +15,7 @@
 #define LED_COUNT_Progress  5                                               // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT_Numbers  4                                                // How many NeoPixels are attached to the Arduino?
 #define BRIGHTNESS 50                                                       // NeoPixel brightness, 0 (min) to 255 (max)
+#define RandomizeNumberPin A0                                               // For random(); function in UnlockingSecuence function()
 
  // Data in pins for CtC
 const int           LedStripNumberzPin      = A3;                                                // Data in Pin for the Led Strip indicator
@@ -78,14 +73,14 @@ TM1637Display       display                   (CLK, DIO);
 Adafruit_NeoPixel   stripNumberz              (LED_COUNT_Numbers, LedStripNumberzPin, NEO_RGB + NEO_KHZ800); 
 
 // Variables for FtS
-int                 Allow_Start             = LOW;                          // Used as a variable to make it so that a player cant restart the game after losing 
 int                 Start                   = LOW; 
+int                 GameStarting            = 1;
 int                 MyRegister[5]           = {0, 0, 0, 0, 0};              // Saves the states of toggle switches in an array
 int                 Progress[5]             = {0, 0, 0, 0, 0};              // Saves the progress in an array
 int                 SwitchPrevious[5]       = {0, 0, 0, 0, 0};              // Savess the previous state of the toggle switches for the Switch-Case
-int                 UnlockingSequence[5]    = {8, 3, 5, 9, 7};              // {8, 3, 5, 9, 7}; This array gives the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
+int                 UnlockingSequence[5]    = {0, 0, 0, 0, 0};              // {8, 3, 5, 9, 7}; This array stores the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
 int                 SequenceCounter         = 0;                            // Update UnlockingSequence every 15 second
-int                 PreviousNumber          = 0;
+int                 PreviousNumber          = 0;                            // For NumbersIndicator() so that the same inary number is not displayed twice in a row
 
 
 // variables for FtS module:
@@ -117,6 +112,8 @@ unsigned long       LoopTimer               = 0;                                
 unsigned long       LoopSubtract            = 0;
 unsigned long       PassDebounceTimer       = 0;                                                          // Stores the current value of millis()        
 unsigned long       PassDebounceDelay       = 50;                                                         // Debounce delay after a successful toggle 
+unsigned long       StartPressed            = 0;                
+unsigned long       StartSignal             = 5000;
 unsigned long       ProgressBar[5]          = {0, 0, 0, 0, 0};                                            // Display the current progress on "progress inticator strip"
 unsigned long       BRGOW[5]                = {0x0000FF, 0x00FF00, 0xFF0000, 0x40FF00, 0xFFFFFF};         // Blue, Red, Green, Orange, White GRB HEX
 Adafruit_7segment   matrix                  = Adafruit_7segment();
@@ -178,18 +175,13 @@ void Switch();
 
 void setup()
 {
-  
   Serial.begin(9600);
 
   Wire.begin(0x79);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
 
-  
-  
-  delay(2000);
-  Serial.println("Setup1");
-
+  delay(1000);
 
  //For CtC !!
  pinMode(RotaryNC_Pin, INPUT_PULLUP);        // Initialize Toggle switch pins as NC
@@ -212,6 +204,7 @@ void setup()
  pinMode(StartButtonPin, INPUT_PULLUP);       // Initialize Start button        A4 -> Allow_Start NC starts LOW (INPUT_PULLUP, when INPUT goes HIGH from PushButton, Allow_Start is set to HIGH)
  pinMode(LedStripProgressPin, OUTPUT);        // Initialize LED strip pins as output
  pinMode(LedStripNumbersPin, OUTPUT);
+ randomSeed(analogRead(RandomizeNumberPin));
  stripProgress.begin();                       // INITIALIZE NeoPixel strip object (REQUIRED)
  stripProgress.clear();                      //ADDED CLEARS AFTER TESTING !!
  stripNumbers.begin();                       //ADDED .clear() after testing
@@ -220,18 +213,12 @@ void setup()
  stripNumbers.show();                         // Turn OFF all pixels ASAP
  stripProgress.setBrightness(BRIGHTNESS); 
  stripNumbers.setBrightness(BRIGHTNESS);
- delay(2500);
- Serial.println("Setup complete");
+ delay(1000);
 }
 
 
 void loop()
 {
- Serial.println("Void loop()");  /*
- Serial.print("module is:  ");
- Serial.println(U);
- Serial.print("receiveFromMaster IS: ");
- Serial.println(receiveFromMaster);*/
   if (U == 4)
   {
    U = 0;
@@ -252,7 +239,6 @@ void ChooseGame()
 
         if (U == 3)
         {
-          //Serial.println("CtC in-loop");
           playCtC();  
           U = 0;
         }
@@ -262,14 +248,13 @@ void ChooseGame()
 
 void ProgressCheck()
 {
-if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 1 && Progress[4] == 1) && (MyRegister[0] == 1 && MyRegister[1] == 1 && MyRegister[2] == 1 && MyRegister[3] == 1 && MyRegister[4] == 1))
+if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 1 && Progress[4] == 1) && 
+    (MyRegister[0] == 1 && MyRegister[1] == 1 && MyRegister[2] == 1 && MyRegister[3] == 1 && MyRegister[4] == 1))
   {
-    Serial.println("Congratulations, you beat the game!");
     U = 0;
     matrix.clear();
     matrix.writeDisplay();
     Wire.endTransmission(0x71); 
-    //Allow_Start = HIGH;
     Wire.begin(0x79);
     delay(2000);
     sendToMaster = 2;
@@ -436,18 +421,15 @@ void DebounceSelect()
   SelectStateNow = digitalRead(RotaryNC_Pin);
   if(SelectStateNow != SelectPreviousState)
   {
-    Serial.println("Debounce SELECT SELECT 1");
     CtC_DebounceTimer = millis();
   }
   if ((millis() - CtC_DebounceTimer) > CtC_DebounceDelay)
   {
     if(SelectStateNow != RotarySelect)
     {
-      Serial.println("Debounce SELECT SELECT 2");
       RotarySelect = SelectStateNow;
       if (RotarySelect == LOW && digitalRead(RotaryNC_Pin) == LOW )
         {
-          Serial.println("Debounce SELECT SELECT 3 ON ON ON ");
           MyRotaryRegister[0] = 1;   // ON
         }
       if (RotarySelect == HIGH) 
@@ -464,14 +446,12 @@ void DebounceRight()
   RightStateNow = digitalRead(RotarySW1_Pin);
   if(RightStateNow != RightPreviousState)
   {
-    Serial.println("Debounce RIGHT 1");
     CtC_DebounceTimer = millis();
   }
   if ((millis() - CtC_DebounceTimer) > CtC_DebounceDelay)
   {
     if(RightStateNow != RotaryRight)
     {
-      Serial.println("Debounce RIGHT 2");
       RotaryRight = RightStateNow;
       if (RotaryRight == LOW && digitalRead(RotarySW1_Pin) == LOW)
         {
@@ -491,14 +471,12 @@ void DebounceLeft()
   LeftStateNow = digitalRead(RotarySW2_Pin);
   if(LeftStateNow != LeftPreviousState)
   {
-    Serial.println("Debounce LEFT 1");
     CtC_DebounceTimer = millis();
   }
   if ((millis() - CtC_DebounceTimer) > CtC_DebounceDelay)
   {
     if(LeftStateNow != RotaryLeft)
     {
-      Serial.println("Debounce LEFT 2"); 
       RotaryLeft = LeftStateNow;
       if (RotaryLeft == LOW && digitalRead(RotarySW2_Pin) == LOW)
         {
@@ -517,103 +495,78 @@ void DebounceLeft()
 
 void StartButton()
 {
-  if (digitalRead(StartButtonPin) == HIGH)   //&& digitalRead(MagneticButtonPin) == LOW
+  if (digitalRead(StartButtonPin) == HIGH) 
+  {
+    StartPressed = millis();
+   while (digitalRead(StartButtonPin) == HIGH)
     {
-
-      Start = HIGH;
-      Serial.println("starting..");
-      Wire.end();
-      matrix.begin(0x71);
-      matrix.clear();
-      matrix.writeDisplay();
-     //LoopDelay = LoopDelay + 100; 
+     if ((millis() - StartPressed) > StartSignal)
+       { Serial.println("starting..");
+         Start = HIGH;
+         Wire.end();
+         matrix.begin(0x71);
+         matrix.clear();
+         matrix.writeDisplay();
+       }
     }
+  }
 }
 
-void NumbersIndicator()
+void NumbersIndicator(){
+ int x = counterD;
+ if (x == 5) {x = 0;}
+ if (x == 6) {x = 1;}
+ if (x == 7) {x = 2;}
+ if (x == 8) {x = 3;}
+ if (x == 9) {x = 4;}
+ if (x != PreviousNumber)   // Første LED fra Din er MSB i den binære koden som vises
 {
-  int x = counterD;
-  if (x >= 5) {x = 0;}
-  if (x != PreviousNumber)                                 // Første LED fra Din er MSB i den binære koden som vises
-     {
-          switch(UnlockingSequence[x])
-           {
-              case 0:
-              stripNumbers.setPixelColor(0, 0); 
-              stripNumbers.setPixelColor(1, 0);
-              stripNumbers.setPixelColor(2, 0);
-              stripNumbers.setPixelColor(3, 0);
-              break;
-
-              case 1:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, 0);
-              stripNumbers.setPixelColor(2, 0);
-              stripNumbers.setPixelColor(3, BRGOW[x]);
-              break;
-
-              case 2:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, 0);
-              stripNumbers.setPixelColor(2, BRGOW[x]);
-              stripNumbers.setPixelColor(3, 0);
-              break;
-
-              case 3:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, 0);
-              stripNumbers.setPixelColor(2, BRGOW[x]);
-              stripNumbers.setPixelColor(3, BRGOW[x]);
-              break;
-
-              case 4:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, BRGOW[x]);
-              stripNumbers.setPixelColor(2, 0);
-              stripNumbers.setPixelColor(3, 0);
-              break;
-
-              case 5:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, BRGOW[x]);
-              stripNumbers.setPixelColor(2, 0);
-              stripNumbers.setPixelColor(3, BRGOW[x]);
-              break;
-
-              case 6:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, BRGOW[x]);
-              stripNumbers.setPixelColor(2, BRGOW[x]);
-              stripNumbers.setPixelColor(3, 0);
-              break;
-
-              case 7:
-              stripNumbers.setPixelColor(0, 0);
-              stripNumbers.setPixelColor(1, BRGOW[x]);
-              stripNumbers.setPixelColor(2, BRGOW[x]);
-              stripNumbers.setPixelColor(3, BRGOW[x]);
-              break;
-
-              case 8:
-              stripNumbers.setPixelColor(0, BRGOW[x]);
-              stripNumbers.setPixelColor(1, 0);
-              stripNumbers.setPixelColor(2, 0);
-              stripNumbers.setPixelColor(3, 0);
-              break;
-
-              case 9:
-              stripNumbers.setPixelColor(0, BRGOW[x]);
-              stripNumbers.setPixelColor(1, 0);
-              stripNumbers.setPixelColor(2, 0);
-              stripNumbers.setPixelColor(3, BRGOW[x]);
-              break;
-
-              default:
-              break;
-            }
-            PreviousNumber = x;
-            stripNumbers.show();
-      } 
+    switch(UnlockingSequence[x]){
+     case 0:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, 0);
+     stripNumbers.setPixelColor(2, 0);stripNumbers.setPixelColor(3, 0);
+     break;
+     case 1:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, 0); 
+     stripNumbers.setPixelColor(2, 0); stripNumbers.setPixelColor(3, BRGOW[x]);
+     break;
+     case 2:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, 0); 
+     stripNumbers.setPixelColor(2, BRGOW[x]); stripNumbers.setPixelColor(3, 0);
+     break;
+     case 3:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, 0); 
+     stripNumbers.setPixelColor(2, BRGOW[x]); stripNumbers.setPixelColor(3, BRGOW[x]);
+     break;
+     case 4:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, BRGOW[x]); 
+     stripNumbers.setPixelColor(2, 0); stripNumbers.setPixelColor(3, 0);
+     break;
+     case 5:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, BRGOW[x]); 
+     stripNumbers.setPixelColor(2, 0);stripNumbers.setPixelColor(3, BRGOW[x]);
+     break;
+     case 6:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, BRGOW[x]); 
+     stripNumbers.setPixelColor(2, BRGOW[x]); stripNumbers.setPixelColor(3, 0);
+     break;
+     case 7:
+     stripNumbers.setPixelColor(0, 0); stripNumbers.setPixelColor(1, BRGOW[x]); 
+     stripNumbers.setPixelColor(2, BRGOW[x]); stripNumbers.setPixelColor(3, BRGOW[x]);
+     break;
+     case 8:
+     stripNumbers.setPixelColor(0, BRGOW[x]); stripNumbers.setPixelColor(1, 0); 
+     stripNumbers.setPixelColor(2, 0); stripNumbers.setPixelColor(3, 0);
+     break;
+     case 9:
+     stripNumbers.setPixelColor(0, BRGOW[x]); stripNumbers.setPixelColor(1, 0); 
+     stripNumbers.setPixelColor(2, 0); stripNumbers.setPixelColor(3, BRGOW[x]);
+     break;
+     default:
+     break;}
+    PreviousNumber = x;
+    stripNumbers.show();
+  } 
 } 
 
 void ProgressIndicator()
@@ -639,14 +592,14 @@ void ProgressIndicator()
 
 void UpdateSequence()
 {
-  if (SequenceCounter > 60)
+  
+  if ((SequenceCounter > 60) || GameStarting == 1)
   {
-    for (int u = 0, m = 5; u < 5; u++, m--)
-    {
-      UnlockingSequence[u] = (UnlockingSequence[u] - m);
-      if (UnlockingSequence[u] > 9){UnlockingSequence[u] = 1;}
-      if (UnlockingSequence[u] < 1){UnlockingSequence[u] = 7;}
-    } 
+   for(int i = 0; i < 5; i++)
+   {
+     UnlockingSequence[i] = random(10);
+   }
+    GameStarting = 0;
     SequenceCounter = 0;
     Serial.println(" ");
     for (int s = 0; s < 5; s++)
@@ -668,7 +621,7 @@ void AccelerateTimer()
   if (LoopDelay > 200)
   {
     MyRegister[0] = 0; 
-    LoopDelay = (LoopDelay - 25); // Timer ticks down at a faster rate after failure (wrong input)
+    LoopDelay = (LoopDelay - 50); // Timer ticks down at a faster rate after failure (wrong input)
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
   }
@@ -694,11 +647,11 @@ void DebounceBlue()
       BlueButtonState = BlueStateNow;
       if (BlueButtonState == LOW)
         {
-          MyRegister[0] = 1;   // OFF
+          MyRegister[0] = 1;   
         }
       if (BlueButtonState == HIGH) 
         {
-          MyRegister[0] = 0;   // ON
+          MyRegister[0] = 0;   
         }
     }
   }
@@ -710,7 +663,6 @@ void DebounceRed()
   int RedStateNow = digitalRead(RedButtonPin);
   if(RedStateNow != RedPreviousState)
   {
-    Serial.println("DEBOUCE RED");
     FtS_DebounceTimer = millis();
   }
   if ((millis() - FtS_DebounceTimer) > FtS_DebounceDelay)
@@ -810,10 +762,6 @@ void DebounceWhite()
 
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
-  Serial.print("receiveFromMaster: ");
-  Serial.println(receiveFromMaster);
-  Serial.print("U: ");
-  Serial.println(U);
   if (S == 1)
   {
     Serial.println("RESET");
@@ -824,14 +772,10 @@ void receiveEvent(int) {
   if (receiveFromMaster == 2) {
     Serial.println("FtS running - Builtin LED turning on");
     U = 2;
-    Serial.print("U: ");
-    Serial.println(U);
   }
   if (receiveFromMaster == 3) {
     Serial.println("CtC running - Builtin LED turning on");
     U = 3;
-    Serial.print("U: ");
-    Serial.println(U);
   } 
 } 
 
@@ -860,12 +804,13 @@ void requestEvent() {
     }
      else if (sendToMaster == 5) {
       Serial.println("Failure");
+      S = 1;
       Wire.write(sendToMaster);
+      U = 0;
       sendToMaster = 0;
     }
     CtC_complete = false;
     FtS_complete = false;
-    Serial.println("in request event");
   }
 }
 
@@ -874,7 +819,6 @@ void SelectDigitz()
 {
   if (SelectDigit == 0)
    {
-     //Serial.println("3 - Select digit IS 0");
      if (Action[0] == 1)
        {
          SelectDigit++;
@@ -894,7 +838,6 @@ void SelectDigitz()
 
   if (SelectDigit == 1)
    {
-     //Serial.println("3 - Select digit IS 1");
      if (Action[0] == 1)
        {
          SelectDigit++;
@@ -914,7 +857,6 @@ void SelectDigitz()
 
  if (SelectDigit == 2)
    {
-     //Serial.println("3 - Select digit IS 2");
       if (Action[0] == 1)
        {
          SelectDigit++;
@@ -934,7 +876,6 @@ void SelectDigitz()
 
  if (SelectDigit == 3)
    {
-   //Serial.println("3 - Select digit IS 3");
      if (Action[1] == 1)
        {
          Digit[3] = Digit[3] + 1;
@@ -946,7 +887,6 @@ void SelectDigitz()
         }
      if (Action[0] == 1)
         {
-         Serial.println("Enter PASSWORD ENTER PASSWORD");
          EnterPassword();
          LedIndicator();
         }
@@ -958,7 +898,6 @@ void Switch()
 {
    for (int i = 0; i < 3; i++)
  {
-   Serial.println("2 - Switch case");
    switch(MyRotaryRegister[i])
     {
       case 0:
@@ -995,7 +934,7 @@ void StatusCheck()
              CtC_complete = true;
              U = 0;
              Serial.println("Bomb exploded.");
-             delay(1000000);
+             delay(20000);
         }
 }
 
@@ -1003,35 +942,34 @@ void playCtC()
 {
   while (!CtC_complete && U == 3)
   {
-  Serial.println("0 - while loop");
-
   StatusCheck();
   DebounceSelect();
   DebounceRight();
   DebounceLeft(); 
-
   data[0] = display.encodeDigit(Digit[0]);
   data[1] = display.encodeDigit(Digit[1]);
   data[2] = display.encodeDigit(Digit[2]);
   data[3] = display.encodeDigit(Digit[3]);
   display.setSegments(data);
- 
-   Switch();
-   SelectDigitz();
+  Switch();
+  SelectDigitz();
   }
 
 }
 
 void playFtS()
 {
-  Serial.println("PlayFtS");
-  while (U == 2)
-  {  
-  StartButton();
- while (Start == HIGH) //== HIGH && digitalRead(MagneticButtonPin) == LOW
- {
-    for (uint16_t counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
-    { 
+ while (U == 2)
+  { 
+   if (Start == LOW)
+    {
+      UpdateSequence();
+      StartButton();
+    } 
+   if (Start == HIGH) 
+    {
+     for (uint16_t counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
+     { 
       UpdateSequence();    
       ProgressIndicator();
       NumbersIndicator();
@@ -1072,11 +1010,15 @@ void playFtS()
           {
            Serial.println("GAME OVER...");
            Serial.println("You ran out of time, restart the game to try again");
-           Allow_Start = HIGH;
+           matrix.clear();
+           matrix.writeDisplay();
+           Wire.endTransmission(0x71); 
+           Wire.begin(0x79);
+           delay(2000);
            sendToMaster = 5;
            FtS_complete = true;
-
-           break;
+           U = 0;
+           delay(5000);
           }
 
           DebounceBlue();
@@ -1094,14 +1036,16 @@ void playFtS()
                 break;
 
               case 1:
-                if ((counterA != UnlockingSequence[i] && counterB != UnlockingSequence[i] && counterC != UnlockingSequence[i] && counterD != UnlockingSequence[i]) && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)     // IF statement for when the switch is flipped at the incorrect time
+                if ((counterA != UnlockingSequence[i] && counterB != UnlockingSequence[i] && counterC != UnlockingSequence[i] && counterD != UnlockingSequence[i])
+                    && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)     // IF statement for when the switch is flipped at the incorrect time
                   {
                    AccelerateTimer();
                    SwitchPrevious[i] = 1;
                    memset(Progress, 0, sizeof(Progress));
                    break;
                   }
-                if ((counterA == UnlockingSequence[i] || counterB == UnlockingSequence[i] || counterC == UnlockingSequence[i] || counterD == UnlockingSequence[i]) && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)
+                if ((counterA == UnlockingSequence[i] || counterB == UnlockingSequence[i] || counterC == UnlockingSequence[i] || counterD == UnlockingSequence[i])
+                     && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)    // IF statement for when the switch is flipped at the correct time
                   {
                    GameProgress();
                    SwitchPrevious[i] = 1;

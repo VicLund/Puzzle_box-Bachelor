@@ -178,8 +178,8 @@ uint32_t turq = 0x00FFFF;
 uint32_t white = 0xFFFFFF;
 
 int regularButtonsArray[] = {0, 1, 2, 5, 6, 9, 10, 13, 14, 15};
-int leftButtonsArray[] = {3, 7, 11};
-int rightButtonsArray[] = {4, 8, 12};
+int rightButtonsArray[] = {3, 7, 11};
+int leftButtonsArray[] = {4, 8, 12};
 
 int regularButtonsArraySize = sizeof(regularButtonsArray) / sizeof(int);
 int leftButtonsArraySize = sizeof(leftButtonsArray) / sizeof(int);
@@ -284,9 +284,9 @@ TrellisCallback blink(keyEvent evt){
     checkFinished(buttonPressed);
     cheatCode(buttonPressed);
     
-  } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
+  } /*else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
   // or is the pad released?
-  }
+  }*/
 
   // Turn on/off the neopixels!
   trellis.pixels.show();
@@ -371,7 +371,8 @@ void trellisStartup(){
   //activate all keys and set callbacks
   for(int i=0; i<16; i++){
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_RISING);
-    trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING);
+    // What happens if we don't activate the falling edge?
+    //trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING);
     trellis.registerCallback(i, blink);
   }
 }
@@ -403,8 +404,8 @@ void checkFinished(int buttonPressed){
   for(int i = 0; i < trellisArraySize; i++){
     trellisSum += trellisArray[i];
   }
-  Serial.print("Sum of trellis array: ");
-  Serial.println(trellisSum);
+  //Serial.print("Sum of trellis array: ");
+  //Serial.println(trellisSum);
   if(trellisSum == 16){
     Serial.println("You're finished");
     finishSequence();
@@ -566,7 +567,7 @@ void regularAdjButtons(int buttonPressed){
   }
 }
 
-void leftAdjButtons(int buttonPressed){
+void rightAdjButtons(int buttonPressed){
   buttonAdjUp = buttonPressed-4;
   buttonAdjDown = buttonPressed+4;
   buttonAdjLeft = buttonPressed-1;
@@ -633,7 +634,7 @@ void leftAdjButtons(int buttonPressed){
   }
 }
 
-void rightAdjButtons(int buttonPressed){
+void leftAdjButtons(int buttonPressed){
   buttonAdjUp = buttonPressed-4;
   buttonAdjRight = buttonPressed+1;
   buttonAdjDown = buttonPressed+4;
@@ -820,22 +821,24 @@ void startSequence(){
   //Show red light behind toggle switch
   strip.clear();
   strip.show();
-  strip.fill(strip.Color(255, 0, 0), 81, 86);
-  strip.fill(strip.Color(255, 0, 0), 0, 2);
+  strip.fill(strip.Color(255, 0, 0), 81, 5);
+  strip.fill(strip.Color(255, 0, 0), 0, 3);
   strip.show();
 }
 
 void startSequence_switchOn(){
   lcd.noAutoscroll();
-  /*Wire.beginTransmission(slaveAdr1);
+  Wire.beginTransmission(slaveAdr1);
   Wire.write(start);
-  Wire.endTransmission();*/
+  Wire.endTransmission();
 
   updateMainMenu();
   startUpLights();
 }
 
 void endSequence(){
+  strip.clear();
+  strip.show();
   fail_pass_FtC = "None";
   fail_pass_RtN = "None";
   fail_pass_LO = "None";
@@ -845,6 +848,7 @@ void endSequence(){
   Wire.endTransmission();
   delay(1000);
   lcd.clear();
+  lcd.setCursor(5,0);
   lcd.print("Uh Oh!");
   while(countdownTimerOn){
     currentTime = millis();
@@ -855,8 +859,12 @@ void endSequence(){
         lcd.setCursor(7, 1);
         lcd.print(totalSeconds);
         debounceToggleSwitch();
+        strip.fill(strip.Color(255,0,0), 0, numStripPixels);
+        strip.show();
       }
       debounceToggleSwitch();
+      strip.clear();
+      strip.show();
     }
     debounceToggleSwitch();
   }
@@ -979,8 +987,8 @@ void celebrateLights(){
 }
 
 void properEnding_lights(){
-  for(int i = 0; i < 5; i++){
-    for(int j = 0; j < 65536; j=j+20){
+
+    for(int j = 0; j < 65536; j=j+2500){
       for(int k = 0; k < numStripPixels; k=k+2){
         strip.setPixelColor(k, strip.ColorHSV(j, 255, 255));
       }
@@ -988,7 +996,7 @@ void properEnding_lights(){
         strip.setPixelColor(l, noLight);
       }
       strip.show();
-      delay(10);
+      delay(100);
       for(int m = 0; m < numStripPixels; m=m+2){
         strip.setPixelColor(m, noLight);
       }
@@ -996,9 +1004,9 @@ void properEnding_lights(){
         strip.setPixelColor(n, strip.ColorHSV(j, 255, 255));
       }
       strip.show();
-      delay(10);
+      delay(100);
     }
-    for(int k = 65536; k >= 0; k=k-20){
+    for(int k = 65536; k >= 0; k=k-2500){
       for(int l = 0; l < numStripPixels; l=l+2){
         strip.setPixelColor(l, strip.ColorHSV(k, 255, 255));
       }
@@ -1006,7 +1014,7 @@ void properEnding_lights(){
         strip.setPixelColor(m, noLight);
       }
       strip.show();
-      delay(10);
+      delay(100);
       for(int n = 0; n < numStripPixels; n=n+2){
         strip.setPixelColor(n, noLight);
       }
@@ -1014,9 +1022,8 @@ void properEnding_lights(){
         strip.setPixelColor(o, strip.ColorHSV(k, 255, 255));
       }
       strip.show();
-      delay(10);
+      delay(100);
     }
-  }
 }
 
 void trickEnding_lights(){
@@ -1641,6 +1648,7 @@ void CtC_firstModule_gamePlay(){
   CtC_func();
   if(fail_pass_FtC == "pass"){
     fail_pass_FtC = "None";
+    lcd.clear();
     progressBar_startStopPoint(0, 25);
     LO_func();
     if(fail_pass_LO == "pass"){
@@ -1942,7 +1950,7 @@ void progressBar_startStopPoint(int pb_startPoint, int pb_stopPoint){
       for(int j = 0; j < number; j++)
       {
         lcd.setCursor(j,lineToPrintOn);
-       lcd.write(5);
+        lcd.write(5);
       }
     }
        lcd.setCursor(number,lineToPrintOn);

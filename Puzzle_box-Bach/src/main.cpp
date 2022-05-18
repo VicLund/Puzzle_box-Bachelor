@@ -1949,7 +1949,7 @@ void progressBar_startStopPoint(int pb_startPoint, int pb_stopPoint){
       for(int j = 0; j < number; j++)
       {
         lcd.setCursor(j,lineToPrintOn);
-       lcd.write(5);
+        lcd.write(5);
       }
     }
        lcd.setCursor(number,lineToPrintOn);

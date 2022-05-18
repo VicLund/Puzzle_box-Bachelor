@@ -178,8 +178,8 @@ uint32_t turq = 0x00FFFF;
 uint32_t white = 0xFFFFFF;
 
 int regularButtonsArray[] = {0, 1, 2, 5, 6, 9, 10, 13, 14, 15};
-int leftButtonsArray[] = {3, 7, 11};
-int rightButtonsArray[] = {4, 8, 12};
+int rightButtonsArray[] = {3, 7, 11};
+int leftButtonsArray[] = {4, 8, 12};
 
 int regularButtonsArraySize = sizeof(regularButtonsArray) / sizeof(int);
 int leftButtonsArraySize = sizeof(leftButtonsArray) / sizeof(int);
@@ -567,7 +567,7 @@ void regularAdjButtons(int buttonPressed){
   }
 }
 
-void leftAdjButtons(int buttonPressed){
+void rightAdjButtons(int buttonPressed){
   buttonAdjUp = buttonPressed-4;
   buttonAdjDown = buttonPressed+4;
   buttonAdjLeft = buttonPressed-1;
@@ -634,7 +634,7 @@ void leftAdjButtons(int buttonPressed){
   }
 }
 
-void rightAdjButtons(int buttonPressed){
+void leftAdjButtons(int buttonPressed){
   buttonAdjUp = buttonPressed-4;
   buttonAdjRight = buttonPressed+1;
   buttonAdjDown = buttonPressed+4;
@@ -1648,6 +1648,7 @@ void CtC_firstModule_gamePlay(){
   CtC_func();
   if(fail_pass_FtC == "pass"){
     fail_pass_FtC = "None";
+    lcd.clear();
     progressBar_startStopPoint(0, 25);
     LO_func();
     if(fail_pass_LO == "pass"){

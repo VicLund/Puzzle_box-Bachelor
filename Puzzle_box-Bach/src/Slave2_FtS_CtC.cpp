@@ -94,7 +94,7 @@ int                 RedStateNow             = 0;
 int                 GreenStateNow           = 0;
 int                 OrangeStateNow          = 0;
 int                 WhiteStateNow           = 0;
-int                 S                       = 0;
+int                 S                       = 0;                                                // S variable that is set to 1 to run the code that resets the MCU
 
 //boolean buttonState = LOW;
 int                 BluePreviousState       = LOW;                                              // Saves the previous state of the toggle switch 

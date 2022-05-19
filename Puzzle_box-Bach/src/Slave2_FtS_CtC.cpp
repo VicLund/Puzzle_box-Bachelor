@@ -5,17 +5,17 @@
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_LEDBackpack.h>
 
-// Watchdog interrupt Reset 
+// Watchdog interrupt Reset for slave 2 MCU
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
 
 // Module connection pins 
 #define CLK A5
 #define DIO A6 
 #define LED_COUNT_Numbers  4                                                                     
-#define LED_COUNT_Progress  5                                               // How many NeoPixels are attached to the Arduino?
-#define LED_COUNT_Numbers  4                                                // How many NeoPixels are attached to the Arduino?
-#define BRIGHTNESS 50                                                       // NeoPixel brightness, 0 (min) to 255 (max)
-#define RandomizeNumberPin A0                                               // For random(); function in UnlockingSecuence function()
+#define LED_COUNT_Progress  5                                                                    // How many NeoPixels are attached to the Arduino?
+#define LED_COUNT_Numbers  4                                                                     // How many NeoPixels are attached to the Arduino?
+#define BRIGHTNESS 50                                                                            // NeoPixel brightness, 0 (min) to 255 (max)
+#define RandomizeNumberPin A0                                                                    // For random(); function in UnlockingSecuence function()
 
  // Data in pins for CtC
 const int           LedStripNumberzPin      = A3;                                                // Data in Pin for the Led Strip indicator
@@ -24,71 +24,70 @@ const int           RotarySW1_Pin           = 6;                                
 const int           RotarySW2_Pin           = 7;                                                 // Data in Pin 
 
 // Data in pins for FtS
-const int           BlueButtonPin           = 0;                            // Blue ToggleSwitch pin
-const int           RedButtonPin            = 1;                            // Red ToggleSwitch pin
-const int           GreenButtonPin          = 2;                            // Green ToggleSwitch pin
-const int           OrangeButtonPin         = 3;                            // Orange ToggleSwitch pin
-const int           WhiteButtonPin          = 4;                            // White ToggleSwitch pin
-const int           LedStripProgressPin     = A1;                           // Data in Pin for the Led Strip indicator
-const int           LedStripNumbersPin      = A2;                           // Data in Pin for the Led Strip indicator
-const int           StartButtonPin          = A4;                           // Data in pin Start button
+const int           BlueButtonPin           = 0;                                                 // Blue ToggleSwitch pin
+const int           RedButtonPin            = 1;                                                 // Red ToggleSwitch pin
+const int           GreenButtonPin          = 2;                                                 // Green ToggleSwitch pin
+const int           OrangeButtonPin         = 3;                                                 // Orange ToggleSwitch pin
+const int           WhiteButtonPin          = 4;                                                 // White ToggleSwitch pin
+const int           LedStripProgressPin     = A1;                                                // Data in Pin for the Led Strip indicator
+const int           LedStripNumbersPin      = A2;                                                // Data in Pin for the Led Strip indicator
+const int           StartButtonPin          = A4;                                                // Data in pin Start button
 
 //Variables for CtC module
-int                 RotarySelect            = HIGH;                                              //
-int                 RotaryRight             = HIGH;                                              //
-int                 RotaryLeft              = HIGH;                                              //
-int                 SelectDigit             = 0;                                                 //
-int                 Attempts                = 13;                                                //
-int                 SelectStateNow          = 0;                                                 //
-int                 RightStateNow           = 0;                                                 //
-int                 LeftStateNow            = 0;                                                 //
-int                 SelectPreviousState     = 0;                                                 //
-int                 RightPreviousState      = 0;                                                 //
-int                 LeftPreviousState       = 0;                                                 //
-int                 Password                = 0;
-int                 MyRotaryRegister[3]     = {0, 0, 0};                                         //
-int                 RotaryPrevious[3]       = {0, 0, 0};                                         //
-int                 Rotary[3]               = {0, 1, 2};                                         // 
-int                 Action[3]               = {0, 0, 0};                                         //
+int                 RotarySelect            = HIGH;                                              // variable to store the Rotary switch status
+int                 RotaryRight             = HIGH;                                              // variable to store the Rotary switch status
+int                 RotaryLeft              = HIGH;                                              // variable to store the Rotary switch status
+int                 SelectDigit             = 0;                                                 // Defines what digit currently being incremented/decremented
+int                 Attempts                = 13;                                                // Defines how many attempts are allowed for the Crack the Code module
+int                 SelectStateNow          = 0;                                                 // Variable to store the current state of the Rotary switch
+int                 RightStateNow           = 0;                                                 // Variable to store the current state of the Rotary switch
+int                 LeftStateNow            = 0;                                                 // Variable to store the current state of the Rotary switch
+int                 SelectPreviousState     = 0;                                                 // Variable to store the Previous state of the Rotary switch
+int                 RightPreviousState      = 0;                                                 // Variable to store the Previous state of the Rotary switch
+int                 LeftPreviousState       = 0;                                                 // Variable to store the Previous state of the Rotary switch
+int                 Password                = 0;                                                 // Defines what password the program checks for in Crack the Code. 
+int                 MyRotaryRegister[3]     = {0, 0, 0};                                         // Array to store the inputs from the outputs of the Rotary Switch
+int                 RotaryPrevious[3]       = {0, 0, 0};                                         // Array to store the previous input from the Rotary switch
+int                 Action[3]               = {0, 0, 0};                                         // Array to store what action to take based on inputs from the Rotary switch
 
 // More variables for CtC
-const unsigned int  Password1[4]            = {3, 7, 2, 5};                                      //
-const unsigned int  Password2[4]            = {7, 0, 3, 4};                                      //
-unsigned int        Digit[4]                = {0, 0, 0, 0};                                      //
+const unsigned int  Password1[4]            = {3, 7, 2, 5};                                      // The first password for Crack the Code module
+const unsigned int  Password2[4]            = {7, 0, 3, 4};                                      // The second password for Crack the Code module 
+unsigned int        Digit[4]                = {0, 0, 0, 0};                                      // This array stores the inputs in Crack the Code 
 unsigned long       CtC_DebounceDelay       = 20;                                                // Debounce delay for toggle switches
 unsigned long       CtC_DebounceTimer       = 0;                                                 // Stores the current value of millis()   
-uint8_t             data[4]                 = {0xff, 0xff, 0xff, 0xff };                         //                                                           //
-const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};                              //
-const uint8_t       SEG_SWIRL2[]            = {0, 0, SEG_A, SEG_A};                              //
-const uint8_t       SEG_SWIRL3[]            = {0 ,0 ,0 ,SEG_B | SEG_C};                          //
-const uint8_t       SEG_SWIRL4[]            = {0, 0, SEG_D, SEG_D};                              //
-const uint8_t       SEG_SWIRL5[]            = {SEG_D, SEG_D, 0, 0};                              //
-const uint8_t       SEG_SWIRL6[]            = {SEG_E | SEG_F, 0, 0, 0};                          //
+uint8_t             data[4]                 = {0xff, 0xff, 0xff, 0xff };                         // The array that stores the variables on the 4 digit display for Crack the Code module                                                              
+const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};                              // Lights up the two leftmost segments on the top of the display
+const uint8_t       SEG_SWIRL2[]            = {0, 0, SEG_A, SEG_A};                              // Lights up to segments on the 4 digit with 7 segments per digit display
+const uint8_t       SEG_SWIRL3[]            = {0 ,0 ,0 ,SEG_B | SEG_C};                          // Lights up to segments on the 4 digit with 7 segments per digit display
+const uint8_t       SEG_SWIRL4[]            = {0, 0, SEG_D, SEG_D};                              // Lights up to segments on the 4 digit with 7 segments per digit display
+const uint8_t       SEG_SWIRL5[]            = {SEG_D, SEG_D, 0, 0};                              // Lights up to segments on the 4 digit with 7 segments per digit display
+const uint8_t       SEG_SWIRL6[]            = {SEG_E | SEG_F, 0, 0, 0};                          // Lights up to segments on the 4 digit with 7 segments per digit display
 const uint8_t       SEG_DONE[]              = {SEG_B | SEG_C | SEG_D | SEG_E | SEG_G, SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F, SEG_C | SEG_E | SEG_G, SEG_A | SEG_D | SEG_E | SEG_F | SEG_G};
 const uint8_t       SEG_PASS[]              = {SEG_A | SEG_B | SEG_E | SEG_F | SEG_G , SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G , SEG_A | SEG_C | SEG_D | SEG_G | SEG_F , SEG_A | SEG_C | SEG_D | SEG_G | SEG_F};
 const uint8_t       SEG_FAIL[]              = {SEG_A | SEG_F | SEG_E | SEG_G , SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G , SEG_E | SEG_F, SEG_F | SEG_E | SEG_D};
 const uint8_t       SEG_BLINK[]             = {SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G, SEG_A | SEG_D | SEG_G};
 const uint8_t       SEG_BOOM[]              = {SEG_E | SEG_G, SEG_E | SEG_F, SEG_E | SEG_F | SEG_A | SEG_B | SEG_G, 0};
-TM1637Display       display                   (CLK, DIO);
+TM1637Display       display                   (CLK, DIO);                                                       
 Adafruit_NeoPixel   stripNumberz              (LED_COUNT_Numbers, LedStripNumberzPin, NEO_RGB + NEO_KHZ800); 
 
 // Variables for FtS
 int                 Start                   = LOW; 
 int                 GameStarting            = 1;
-int                 MyRegister[5]           = {0, 0, 0, 0, 0};              // Saves the states of toggle switches in an array
-int                 Progress[5]             = {0, 0, 0, 0, 0};              // Saves the progress in an array
-int                 SwitchPrevious[5]       = {0, 0, 0, 0, 0};              // Savess the previous state of the toggle switches for the Switch-Case
-int                 UnlockingSequence[5]    = {0, 0, 0, 0, 0};              // {8, 3, 5, 9, 7}; This array stores the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
-int                 SequenceCounter         = 0;                            // Update UnlockingSequence every 15 second
-int                 PreviousNumber          = 0;                            // For NumbersIndicator() so that the same inary number is not displayed twice in a row
+int                 MyRegister[5]           = {0, 0, 0, 0, 0};                                   // Saves the states of toggle switches in an array
+int                 Progress[5]             = {0, 0, 0, 0, 0};                                   // Saves the progress in an array
+int                 SwitchPrevious[5]       = {0, 0, 0, 0, 0};                                   // Savess the previous state of the toggle switches for the Switch-Case
+int                 UnlockingSequence[5]    = {0, 0, 0, 0, 0};                                   // {8, 3, 5, 9, 7}; This array stores the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
+int                 SequenceCounter         = 0;                                                 // Update UnlockingSequence every 15 second
+int                 PreviousNumber          = 0;                                                 // For NumbersIndicator() so that the same inary number is not displayed twice in a row
 
 
 // variables for FtS module:
-int                 BlueButtonState         = LOW;                          // variable for reading the toggle switch status
-int                 RedButtonState          = LOW;                          // variable for reading the toggle switch status
-int                 GreenButtonState        = LOW;                          // variable for reading the toggle switch status
-int                 OrangeButtonState       = LOW;                          // variable for reading the toggle switch status
-int                 WhiteButtonState        = LOW;                          // variable for reading the toggle switch status
+int                 BlueButtonState         = LOW;                                               // variable for reading the toggle switch status
+int                 RedButtonState          = LOW;                                               // variable for reading the toggle switch status
+int                 GreenButtonState        = LOW;                                               // variable for reading the toggle switch status
+int                 OrangeButtonState       = LOW;                                               // variable for reading the toggle switch status
+int                 WhiteButtonState        = LOW;                                               // variable for reading the toggle switch status
 
 int                 BlueStateNow            = 0;
 int                 RedStateNow             = 0;
@@ -98,11 +97,11 @@ int                 WhiteStateNow           = 0;
 int                 S                       = 0;
 
 //boolean buttonState = LOW;
-int                 BluePreviousState       = LOW;                           // Saves the previous state of the toggle switch 
-int                 RedPreviousState        = LOW;                           // Saves the previous state of the toggle switch
-int                 GreenPreviousState      = LOW;                           // Saves the previous state of the toggle switch
-int                 OrangePreviousState     = LOW;                           // Saves the previous state of the toggle switch
-int                 WhitePreviousState      = LOW;                           // Saves the previous state of the toggle switch 
+int                 BluePreviousState       = LOW;                                              // Saves the previous state of the toggle switch 
+int                 RedPreviousState        = LOW;                                              // Saves the previous state of the toggle switch
+int                 GreenPreviousState      = LOW;                                              // Saves the previous state of the toggle switch
+int                 OrangePreviousState     = LOW;                                              // Saves the previous state of the toggle switch
+int                 WhitePreviousState      = LOW;                                              // Saves the previous state of the toggle switch 
 
 
 unsigned long       FtS_DebounceDelay       = 50;                                                         // Debounce delay for toggle switches

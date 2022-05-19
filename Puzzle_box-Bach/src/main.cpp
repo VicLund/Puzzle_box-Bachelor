@@ -1,3 +1,5 @@
+// Updated code can be found here: https://github.com/VicLund/Puzzle_box-Bachelor/tree/main/Puzzle_box-Bach/src
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -892,9 +894,6 @@ void properEnding(){
   lcd.clear();
   lcd.setCursor(2, 0);
   lcd.print("Play again?");
-  while(waitPlayAgain){
-    debounceMenuButtonEnter();
-  }
 }
 
 void trickEnding(){
@@ -919,9 +918,6 @@ void trickEnding(){
   lcd.clear();
   lcd.setCursor(3, 0);
   lcd.print("Try again?");
-  while(waitPlayAgain){
-    debounceMenuButtonEnter();
-  }
 }
 
 void startUpLights(){
@@ -1730,7 +1726,6 @@ void LO_func(){
 
 void RtN_func(){
   moduleChosen = true;
-  Serial.println("RtN function running");
   strip.clear();
   strip.show();
   strip.fill(strip.Color(255, 64, 0), 21, 20);    //RtN
@@ -1912,8 +1907,6 @@ void moduleFailed(){
     moduleFailed_name = "None";
   }
   delay(1000);
-  //moduleColors();
-  //updateMainMenu();
 }
 
 void moduleFailed_lights(){

@@ -617,19 +617,30 @@ void UpdateSequence()
 void GameProgress()
 {
   Serial.println("Pass ");
+  if (LoopDelay > 625)
+  {
+    LoopDelay = (LoopDelay - 75); // Timer ticks down at a faster rate 
+    Serial.print("LoopDelay: ");
+    Serial.println(LoopDelay, DEC);
+  }
+  else if (LoopDelay <= 625)
+  {
+    LoopDelay = 1000;
+  }
+  delay(50);
 }
 
 void AccelerateTimer()
 {
   Serial.println("Fail ");
-  if (LoopDelay > 500)
+  if (LoopDelay > 625)
   {
     MyRegister[0] = 0; 
-    LoopDelay = (LoopDelay - 10); // Timer ticks down at a faster rate after failure (wrong input)
+    LoopDelay = (LoopDelay - 75); // Timer ticks down at a faster rate after failure (wrong input)
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
   }
-  if (LoopDelay <= 500)
+  else if (LoopDelay <= 625)
   {
     LoopDelay = (1000 - LoopSubtract);
     LoopSubtract = (LoopSubtract + 200);
@@ -765,7 +776,7 @@ void DebounceWhite()
 void LoseTime()
 {
   
-  for (int t = 0; t < 21; t++)
+  for (int t = 0; t < 21; t++, counterD--)
   {   
     matrix.writeDigitNum(0, (counterA));
     matrix.writeDigitNum(1, (counterB));

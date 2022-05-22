@@ -602,7 +602,7 @@ void UpdateSequence()
    {
      UnlockingSequence[i] = random(10);
    }
-    Stage++;
+    Stage = Stage +2;
     GameStarting = 0;
     SequenceCounter = 0;
     Serial.println(" ");
@@ -617,13 +617,13 @@ void UpdateSequence()
 void GameProgress()
 {
   Serial.println("Pass ");
-  if (LoopDelay > 625)
+  if (LoopDelay > 550)
   {
     LoopDelay = (LoopDelay - 75); // Timer ticks down at a faster rate 
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
   }
-  else if (LoopDelay <= 625)
+  else if (LoopDelay <= 550)
   {
     LoopDelay = 1000;
   }
@@ -643,7 +643,7 @@ void AccelerateTimer()
   else if (LoopDelay <= 625)
   {
     LoopDelay = (1000 - LoopSubtract);
-    LoopSubtract = (LoopSubtract + 200);
+    LoopSubtract = (LoopSubtract + 50);
   }
   delay(50);
 }
@@ -793,18 +793,18 @@ void LoseTime()
           }
      if (counterD == 0 && counterC != 0)
           { 
-           counterD = 9;
+           counterD = 10;
            counterC--;
           }  
      if (counterC == 0 && counterD == 0 && counterB != 0)
           {
            counterC = 5;
-           counterD = 9;
+           counterD = 10;
            counterB--;
           }
      if (counterB == 0 && counterC == 0 && counterD == 0 && counterA != 0)
           {
-           counterD = 9;
+           counterD = 10;
            counterC = 5;
            counterB = 9;
            counterA--;
@@ -1038,7 +1038,7 @@ void playFtS()
      { 
       UpdateSequence();    
       ProgressIndicator();
-      if (Stage >= 10){NumbersIndicator();}
+      if (Stage >= 14 || counterA == 0){NumbersIndicator();}
       ProgressCheck();
       matrix.writeDigitNum(0, (counterA));
       matrix.writeDigitNum(1, (counterB));

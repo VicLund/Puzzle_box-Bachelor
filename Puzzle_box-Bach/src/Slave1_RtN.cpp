@@ -1,3 +1,5 @@
+// Updated code can be found here: https://github.com/VicLund/Puzzle_box-Bachelor/tree/main/Puzzle_box-Bach/src
+
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
 #include "Wire.h"
@@ -116,7 +118,7 @@ int U = 0;
 int V = 0;
 
 //set the volume to starter value (between 0 and 30)
-int volume = 25;
+int volume = 20;
 
 //Debounce variables
 unsigned long debounceDelay = 30;

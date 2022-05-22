@@ -1,15 +1,12 @@
+// Updated code can be found here: https://github.com/VicLund/Puzzle_box-Bachelor/tree/main/Puzzle_box-Bach/src
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
 
-//#include <DFRobotDFPlayerMini.h>
-//#include <Adafruit_LEDBackpack.h>
-//#include <Adafruit_Keypad.h>
 #include <Adafruit_NeoPixel.h>
-//#include <Adafruit_seesaw.h>
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_NeoTrellis.h>
-//#include <DFRobot_I2CMultiplexer.h>
 
 //I2C slaves defines
 #define slaveAdr1 0x78
@@ -178,8 +175,8 @@ uint32_t turq = 0x00FFFF;
 uint32_t white = 0xFFFFFF;
 
 int regularButtonsArray[] = {0, 1, 2, 5, 6, 9, 10, 13, 14, 15};
-int leftButtonsArray[] = {3, 7, 11};
-int rightButtonsArray[] = {4, 8, 12};
+int rightButtonsArray[] = {3, 7, 11};
+int leftButtonsArray[] = {4, 8, 12};
 
 int regularButtonsArraySize = sizeof(regularButtonsArray) / sizeof(int);
 int leftButtonsArraySize = sizeof(leftButtonsArray) / sizeof(int);
@@ -261,7 +258,7 @@ void progressBar_startStopPoint(int, int);
 void trellisStartup();
 void trellisShutDown();
 void trellisStartupAnimation();
-void checkFinished(int);
+void checkFinished();
 void finishSequence();
 void emptyTrellisArray();
 void cheatCode(int);
@@ -275,18 +272,20 @@ void fireworks_gamePlay();
 void rainbowPulse();
 void blinkRed();
 
+// Not own code, only minor adjustments made
+// Taken from https://github.com/adafruit/Adafruit_Seesaw/blob/master/examples/NeoTrellis/basic/basic.ino
 //define a callback for key presses
 TrellisCallback blink(keyEvent evt){
   // Check is the pad pressed?
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
     buttonPressed = evt.bit.NUM;
     LO_buttonCheck(buttonPressed);
-    checkFinished(buttonPressed);
+    checkFinished();
     cheatCode(buttonPressed);
     
-  } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
+  } /*else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
   // or is the pad released?
-  }
+  }*/
 
   // Turn on/off the neopixels!
   trellis.pixels.show();
@@ -353,6 +352,7 @@ void loop() {
   debounceToggleSwitch();
 }
 
+// Taken from https://github.com/adafruit/Adafruit_Seesaw/blob/master/examples/NeoTrellis/basic/basic.ino
 uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
   if(WheelPos < 85) {
@@ -366,6 +366,8 @@ uint32_t Wheel(byte WheelPos) {
   return trellis.pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
+// Not own code, only minor adjustments made
+// Taken from https://github.com/adafruit/Adafruit_Seesaw/blob/master/examples/NeoTrellis/basic/basic.ino
 // Lights On functions
 void trellisStartup(){
   //activate all keys and set callbacks
@@ -376,6 +378,8 @@ void trellisStartup(){
   }
 }
 
+// Not own code, only minor adjustments made
+// Taken from https://github.com/adafruit/Adafruit_Seesaw/blob/master/examples/NeoTrellis/basic/basic.ino
 void trellisStartupAnimation(){
   //do a little animation to show we're on
   for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
@@ -392,31 +396,34 @@ void trellisStartupAnimation(){
 
 void trellisShutDown(){
   for(int i=0; i<NEO_TRELLIS_NUM_KEYS; i++){
+    // Deactivate a given key event, by setting 'bool enable' to false
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_RISING, false);
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING, false);
+
+    // Unregister a callback on a given key
     trellis.unregisterCallback(i);
   }
 }
 
-void checkFinished(int buttonPressed){
+// Checks if all the buttons/lights on the NeoTrellis are turned on
+void checkFinished(){
+  // 'clearing' the trellisSum variable
   trellisSum = 0;
+
+  // Summing the trellisArray and setting the variable trellisSum to the value
   for(int i = 0; i < trellisArraySize; i++){
     trellisSum += trellisArray[i];
   }
-  Serial.print("Sum of trellis array: ");
-  Serial.println(trellisSum);
+
+  // Checking if the variable trellisSum is equal to 16
   if(trellisSum == 16){
-    Serial.println("You're finished");
     finishSequence();
   }
-  //cheatCode(buttonPressed);
 }
 
 void finishSequence(){
   trellisSum = 0;
   emptyTrellisArray();
-  //rainbowPulse();
-  //rainbowChaseBorder();
   if(playGame == true){
     fireworks_gamePlay();
   }
@@ -445,10 +452,7 @@ void emptyTrellisArray(){
 void cheatCode(int buttonPressed){
   if(buttonPressed == 0){
     cheatCodeNr++;
-    Serial.print("cheatCodeNr: ");
-    Serial.println(cheatCodeNr);
     if(cheatCodeNr == 5){
-      Serial.println("Cheat code used");
       moduleFailed_name = "LO";
       fail_pass_LO = "fail";
       trellisSum = 0;
@@ -566,7 +570,7 @@ void regularAdjButtons(int buttonPressed){
   }
 }
 
-void leftAdjButtons(int buttonPressed){
+void rightAdjButtons(int buttonPressed){
   buttonAdjUp = buttonPressed-4;
   buttonAdjDown = buttonPressed+4;
   buttonAdjLeft = buttonPressed-1;
@@ -579,6 +583,9 @@ void leftAdjButtons(int buttonPressed){
   // Checking and Flipping buttonPressed
   if((unsigned long)buttonPressedColor == red){
     trellis.pixels.setPixelColor(buttonPressed, noLight);
+    //Checking if the button number is within the range 0-15
+    //If this wasn't checked the program would get stuck trying to access an
+      //index of the array that doesn't exist
     if((buttonPressed - 16)*(buttonPressed - 0) <= 0){
      trellisArray[buttonPressed] = 0; 
     }
@@ -633,7 +640,7 @@ void leftAdjButtons(int buttonPressed){
   }
 }
 
-void rightAdjButtons(int buttonPressed){
+void leftAdjButtons(int buttonPressed){
   buttonAdjUp = buttonPressed-4;
   buttonAdjRight = buttonPressed+1;
   buttonAdjDown = buttonPressed+4;
@@ -820,22 +827,24 @@ void startSequence(){
   //Show red light behind toggle switch
   strip.clear();
   strip.show();
-  strip.fill(strip.Color(255, 0, 0), 81, 86);
-  strip.fill(strip.Color(255, 0, 0), 0, 2);
+  strip.fill(strip.Color(255, 0, 0), 81, 5);
+  strip.fill(strip.Color(255, 0, 0), 0, 3);
   strip.show();
 }
 
 void startSequence_switchOn(){
   lcd.noAutoscroll();
-  /*Wire.beginTransmission(slaveAdr1);
+  Wire.beginTransmission(slaveAdr1);
   Wire.write(start);
-  Wire.endTransmission();*/
+  Wire.endTransmission();
 
   updateMainMenu();
   startUpLights();
 }
 
 void endSequence(){
+  strip.clear();
+  strip.show();
   fail_pass_FtC = "None";
   fail_pass_RtN = "None";
   fail_pass_LO = "None";
@@ -845,6 +854,7 @@ void endSequence(){
   Wire.endTransmission();
   delay(1000);
   lcd.clear();
+  lcd.setCursor(5,0);
   lcd.print("Uh Oh!");
   while(countdownTimerOn){
     currentTime = millis();
@@ -855,8 +865,12 @@ void endSequence(){
         lcd.setCursor(7, 1);
         lcd.print(totalSeconds);
         debounceToggleSwitch();
+        strip.fill(strip.Color(255,0,0), 0, numStripPixels);
+        strip.show();
       }
       debounceToggleSwitch();
+      strip.clear();
+      strip.show();
     }
     debounceToggleSwitch();
   }
@@ -880,9 +894,6 @@ void properEnding(){
   lcd.clear();
   lcd.setCursor(2, 0);
   lcd.print("Play again?");
-  while(waitPlayAgain){
-    debounceMenuButtonEnter();
-  }
 }
 
 void trickEnding(){
@@ -907,9 +918,6 @@ void trickEnding(){
   lcd.clear();
   lcd.setCursor(3, 0);
   lcd.print("Try again?");
-  while(waitPlayAgain){
-    debounceMenuButtonEnter();
-  }
 }
 
 void startUpLights(){
@@ -979,8 +987,8 @@ void celebrateLights(){
 }
 
 void properEnding_lights(){
-  for(int i = 0; i < 5; i++){
-    for(int j = 0; j < 65536; j=j+20){
+
+    for(int j = 0; j < 65536; j=j+2500){
       for(int k = 0; k < numStripPixels; k=k+2){
         strip.setPixelColor(k, strip.ColorHSV(j, 255, 255));
       }
@@ -988,7 +996,7 @@ void properEnding_lights(){
         strip.setPixelColor(l, noLight);
       }
       strip.show();
-      delay(10);
+      delay(100);
       for(int m = 0; m < numStripPixels; m=m+2){
         strip.setPixelColor(m, noLight);
       }
@@ -996,9 +1004,9 @@ void properEnding_lights(){
         strip.setPixelColor(n, strip.ColorHSV(j, 255, 255));
       }
       strip.show();
-      delay(10);
+      delay(100);
     }
-    for(int k = 65536; k >= 0; k=k-20){
+    for(int k = 65536; k >= 0; k=k-2500){
       for(int l = 0; l < numStripPixels; l=l+2){
         strip.setPixelColor(l, strip.ColorHSV(k, 255, 255));
       }
@@ -1006,7 +1014,7 @@ void properEnding_lights(){
         strip.setPixelColor(m, noLight);
       }
       strip.show();
-      delay(10);
+      delay(100);
       for(int n = 0; n < numStripPixels; n=n+2){
         strip.setPixelColor(n, noLight);
       }
@@ -1014,9 +1022,8 @@ void properEnding_lights(){
         strip.setPixelColor(o, strip.ColorHSV(k, 255, 255));
       }
       strip.show();
-      delay(10);
+      delay(100);
     }
-  }
 }
 
 void trickEnding_lights(){
@@ -1070,6 +1077,7 @@ void executeMainMenuAction(){
 }
 
 // Debounce function for Menu button "Page Up"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounceMenuButtonPgUp(){
   int menuButtonPgUp_reading = digitalRead(menuButtonPgUp);
 
@@ -1094,6 +1102,7 @@ void debounceMenuButtonPgUp(){
 }
 
 // Debounce function for Menu button "Page Down"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounceMenuButtonPgDn(){
   int menuButtonPgDn_reading = digitalRead(menuButtonPgDn);
   
@@ -1119,6 +1128,7 @@ void debounceMenuButtonPgDn(){
 }
 
 // Debounce function for Menu button "Enter"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounceMenuButtonEnter(){
   int menuButtonEnter_reading = digitalRead(menuButtonEnter);
 
@@ -1149,6 +1159,7 @@ void debounceMenuButtonEnter(){
 }
 
 // Debounce function for Menu button "Escape"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounceMenuButtonEsc(){
   int menuButtonEsc_reading = digitalRead(menuButtonEsc);
   
@@ -1179,6 +1190,7 @@ void debounceMenuButtonEsc(){
 }
 
 // Debounce function for module button "Lights Out"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounce_LO_Button(){
   int LO_reading = digitalRead(LO_button);
 
@@ -1213,6 +1225,7 @@ void debounce_LO_Button(){
 }
 
 // Debounce function for module button "Recognize the Note"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounce_RtN_Button(){
     int RtN_reading = digitalRead(RtN_button);
 
@@ -1247,6 +1260,7 @@ void debounce_RtN_Button(){
 }
 
 // Debounce function for module button "Flip the Switch"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounce_FtS_Button(){
     int FtS_reading = digitalRead(FtS_button);
 
@@ -1281,6 +1295,7 @@ void debounce_FtS_Button(){
 }
 
 // Debounce function for module button "Crack the Code"
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounce_CtC_Button(){
     int CtC_reading = digitalRead(CtC_button);
 
@@ -1314,6 +1329,8 @@ void debounce_CtC_Button(){
   CtC_lastButtonState = CtC_reading;
 }
 
+// Debounce function for the toggle switch
+// based on the code from https://docs.arduino.cc/built-in-examples/digital/Debounce
 void debounceToggleSwitch(){
   int toggleSwitch_reading = digitalRead(toggle_switch);
 
@@ -1641,6 +1658,7 @@ void CtC_firstModule_gamePlay(){
   CtC_func();
   if(fail_pass_FtC == "pass"){
     fail_pass_FtC = "None";
+    lcd.clear();
     progressBar_startStopPoint(0, 25);
     LO_func();
     if(fail_pass_LO == "pass"){
@@ -1708,7 +1726,6 @@ void LO_func(){
 
 void RtN_func(){
   moduleChosen = true;
-  Serial.println("RtN function running");
   strip.clear();
   strip.show();
   strip.fill(strip.Color(255, 64, 0), 21, 20);    //RtN
@@ -1890,8 +1907,6 @@ void moduleFailed(){
     moduleFailed_name = "None";
   }
   delay(1000);
-  //moduleColors();
-  //updateMainMenu();
 }
 
 void moduleFailed_lights(){

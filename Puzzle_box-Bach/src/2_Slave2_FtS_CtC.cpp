@@ -617,13 +617,13 @@ void UpdateSequence()
 void GameProgress()
 {
   Serial.println("Pass ");
-  if (LoopDelay > 550)
+  if (LoopDelay > 750)
   {
-    LoopDelay = (LoopDelay - 75); // Timer ticks down at a faster rate 
+    LoopDelay = (LoopDelay - 250); // Timer ticks down at a faster rate 
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
   }
-  else if (LoopDelay <= 550)
+  else if (LoopDelay <= 750)
   {
     LoopDelay = 1000;
   }

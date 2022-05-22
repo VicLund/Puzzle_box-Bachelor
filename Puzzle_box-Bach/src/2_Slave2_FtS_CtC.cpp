@@ -1025,7 +1025,7 @@ void playCtC()
 
 void playFtS()
 {
- while (U == 2)
+ while (!CtC_complete && U == 2)
   { 
    if (Start == LOW)
     {

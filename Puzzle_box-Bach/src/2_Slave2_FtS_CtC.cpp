@@ -78,8 +78,8 @@ int                 MyRegister[5]           = {0, 0, 0, 0, 0};                  
 int                 Progress[5]             = {0, 0, 0, 0, 0};                                   // Saves the progress in an array
 int                 SwitchPrevious[5]       = {0, 0, 0, 0, 0};                                   // Savess the previous state of the toggle switches for the Switch-Case
 int                 UnlockingSequence[5]    = {0, 0, 0, 0, 0};                                   // {8, 3, 5, 9, 7}; This array stores the numbers on the timer where individual switches can be toggled to get a "pass", UnlockingSequence[0] is for the blue toggle switch etc..
-int                 SequenceCounter         = 0;                                                 // Update UnlockingSequence every 15 second
 int                 PreviousNumber          = 0;                                                 // For NumbersIndicator() so that the same inary number is not displayed twice in a row
+int                 Stage                   = 0;                                                 // What stage of FtS the player is on
 
 
 // variables for FtS module:
@@ -107,6 +107,7 @@ int                 WhitePreviousState      = LOW;                              
 unsigned long       FtS_DebounceDelay       = 50;                                                         // Debounce delay for toggle switches
 unsigned long       FtS_DebounceTimer       = 0;                                                          // Stores the current value of millis()
 unsigned long       LoopDelay               = 1000;                                                       // ticks down starting at 1000ms rate (normal speed)
+unsigned long       LoseDelay               = 100;
 unsigned long       LoopTimer               = 0;                                                          // Stores the current value of millis()
 unsigned long       LoopSubtract            = 0;
 unsigned long       PassDebounceTimer       = 0;                                                          // Stores the current value of millis()        
@@ -118,7 +119,10 @@ unsigned long       BRGOW[5]                = {0x0000FF, 0x00FF00, 0xFF0000, 0x4
 Adafruit_7segment   matrix                  = Adafruit_7segment();
 boolean             drawDots                = true;
 uint16_t            counterD                = 0;
-
+uint16_t            counterA                = 3;
+uint16_t            counterB                = 0;
+uint16_t            counterC                = 0;
+uint8_t             SequenceCounter         = 0;                                                           // Update UnlockingSequence every 2 minutes
 
 
 
@@ -592,12 +596,13 @@ void ProgressIndicator()
 void UpdateSequence()
 {
   
-  if ((SequenceCounter > 60) || GameStarting == 1)
+  if ((SequenceCounter > 120) || GameStarting == 1)
   {
    for(int i = 0; i < 5; i++)
    {
      UnlockingSequence[i] = random(10);
    }
+    Stage++;
     GameStarting = 0;
     SequenceCounter = 0;
     Serial.println(" ");
@@ -617,14 +622,14 @@ void GameProgress()
 void AccelerateTimer()
 {
   Serial.println("Fail ");
-  if (LoopDelay > 200)
+  if (LoopDelay > 500)
   {
     MyRegister[0] = 0; 
-    LoopDelay = (LoopDelay - 50); // Timer ticks down at a faster rate after failure (wrong input)
+    LoopDelay = (LoopDelay - 10); // Timer ticks down at a faster rate after failure (wrong input)
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
   }
-  if (LoopDelay <= 200)
+  if (LoopDelay <= 500)
   {
     LoopDelay = (1000 - LoopSubtract);
     LoopSubtract = (LoopSubtract + 200);
@@ -757,7 +762,59 @@ void DebounceWhite()
   WhitePreviousState = WhiteStateNow; 
 }
 
-
+void LoseTime()
+{
+  
+  for (int t = 0; t < 21; t++)
+  {   
+    matrix.writeDigitNum(0, (counterA));
+    matrix.writeDigitNum(1, (counterB));
+    matrix.drawColon(drawDots);
+    matrix.writeDigitNum(3, (counterC));
+    matrix.writeDigitNum(4, (counterD));
+    matrix.writeDisplay();
+    int LoseTimer = millis();
+    while ((millis() - LoseTimer) < LoseDelay)
+    { 
+     if (counterC > 6)
+          {
+           counterC = 6;
+          }
+     if (counterD == 0 && counterC != 0)
+          { 
+           counterD = 9;
+           counterC--;
+          }  
+     if (counterC == 0 && counterD == 0 && counterB != 0)
+          {
+           counterC = 5;
+           counterD = 9;
+           counterB--;
+          }
+     if (counterB == 0 && counterC == 0 && counterD == 0 && counterA != 0)
+          {
+           counterD = 9;
+           counterC = 5;
+           counterB = 9;
+           counterA--;
+          }
+     if(counterB == 0 && counterC == 0 && counterD == 0 && counterA == 0)
+          {
+           Serial.println("GAME OVER...");
+           Serial.println("You ran out of time, restart the game to try again");
+           matrix.clear();
+           matrix.writeDisplay();
+           Wire.endTransmission(0x71); 
+           Wire.begin(0x79);
+           delay(2000);
+           sendToMaster = 5;
+           FtS_complete = true;
+           U = 0;
+           delay(5000);
+          }
+    }
+  }  
+}
 
 void receiveEvent(int) {
   receiveFromMaster = Wire.read();
@@ -966,11 +1023,11 @@ void playFtS()
     } 
    if (Start == HIGH) 
     {
-     for (uint16_t counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
+     for (counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
      { 
       UpdateSequence();    
       ProgressIndicator();
-      NumbersIndicator();
+      if (Stage >= 10){NumbersIndicator();}
       ProgressCheck();
       matrix.writeDigitNum(0, (counterA));
       matrix.writeDigitNum(1, (counterB));
@@ -1038,6 +1095,7 @@ void playFtS()
                     && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)     // IF statement for when the switch is flipped at the incorrect time
                   {
                    AccelerateTimer();
+                   LoseTime();
                    SwitchPrevious[i] = 1;
                    memset(Progress, 0, sizeof(Progress));
                    break;

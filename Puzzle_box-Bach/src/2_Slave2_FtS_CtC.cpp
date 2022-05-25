@@ -1023,6 +1023,12 @@ void playCtC()
 
 }
 
+void ClearLED()
+{
+   stripNumbers.clear();
+   stripNumbers.show();
+}
+
 void playFtS()
 {
  while (!CtC_complete && U == 2)
@@ -1036,9 +1042,10 @@ void playFtS()
     {
      for (counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
      { 
+      ClearLED();
       UpdateSequence();    
       ProgressIndicator();
-      if (Stage >= 14 || counterA == 0){NumbersIndicator();}
+      if (Stage >= 9 || counterA == 0){NumbersIndicator();}
       ProgressCheck();
       matrix.writeDigitNum(0, (counterA));
       matrix.writeDigitNum(1, (counterB));

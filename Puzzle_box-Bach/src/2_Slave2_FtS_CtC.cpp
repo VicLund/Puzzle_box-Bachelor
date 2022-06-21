@@ -1,10 +1,9 @@
-
 #include <Wire.h>
 #include <Arduino.h>
 #include <TM1637Display.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_LEDBackpack.h>
-
+#include <SPI.H>
 // Watchdog interrupt Reset for slave 2 MCU
 #define WDT_CTRL *(uint8_t*) (0x40001000+0x00)
 
@@ -54,7 +53,7 @@ int                 Action[3]               = {0, 0, 0};                        
 const unsigned int  Password1[4]            = {3, 7, 2, 5};                                      // The first password for Crack the Code module
 const unsigned int  Password2[4]            = {7, 0, 3, 4};                                      // The second password for Crack the Code module 
 unsigned int        Digit[4]                = {0, 0, 0, 0};                                      // This array stores the inputs in Crack the Code 
-unsigned long       CtC_DebounceDelay       = 20;                                                // Debounce delay for toggle switches
+unsigned long       CtC_DebounceDelay       = 10;                                                // Debounce delay for toggle switches
 unsigned long       CtC_DebounceTimer       = 0;                                                 // Stores the current value of millis()   
 uint8_t             data[4]                 = {0xff, 0xff, 0xff, 0xff };                         // The array that stores the variables on the 4 digit display for Crack the Code module                                                              
 const uint8_t       SEG_SWIRL1[]            = {SEG_A, SEG_A, 0, 0};                              // Lights up the two leftmost segments on the top of the display
@@ -72,8 +71,10 @@ TM1637Display       display                   (CLK, DIO);
 Adafruit_NeoPixel   stripNumberz              (LED_COUNT_Numbers, LedStripNumberzPin, NEO_RGB + NEO_KHZ800); 
 
 // Variables for FtS
+int                 K                       = 0;
+int                 Z                       = 0;
 int                 Start                   = LOW; 
-int                 GameStarting            = 1;
+int                 GameStarting            = 0;
 int                 MyRegister[5]           = {0, 0, 0, 0, 0};                                   // Saves the states of toggle switches in an array
 int                 Progress[5]             = {0, 0, 0, 0, 0};                                   // Saves the progress in an array
 int                 SwitchPrevious[5]       = {0, 0, 0, 0, 0};                                   // Savess the previous state of the toggle switches for the Switch-Case
@@ -216,7 +217,8 @@ void setup()
  stripNumbers.show();                         // Turn OFF all pixels ASAP
  stripProgress.setBrightness(BRIGHTNESS); 
  stripNumbers.setBrightness(BRIGHTNESS);
- delay(1000);
+ delay(2000);
+ Serial.println("Setup Complete");
 }
 
 
@@ -258,11 +260,12 @@ if ((Progress[0] == 1 && Progress[1] == 1 && Progress[2] == 1 && Progress[3] == 
     matrix.clear();
     matrix.writeDisplay();
     Wire.endTransmission(0x71); 
+    delay(1000);
     Wire.begin(0x79);
-    delay(2000);
+    delay(1000);
     sendToMaster = 2;
     FtS_complete = true;
-    delay(5000);
+    delay(1000);
   }
 }
 
@@ -505,6 +508,7 @@ void StartButton()
     {
      if ((millis() - StartPressed) > StartSignal)
        { Serial.println("starting..");
+         GameStarting = 1;
          Start = HIGH;
          Wire.end();
          matrix.begin(0x71);
@@ -595,18 +599,61 @@ void ProgressIndicator()
 
 void UpdateSequence()
 {
-  
-  if ((SequenceCounter > 120) || GameStarting == 1)
+ int s = 0;
+ int i = 0;
+ if (SequenceCounter == 20){stripNumbers.clear();stripNumbers.show();}
+ if (SequenceCounter > 240)
   {
-   for(int i = 0; i < 5; i++)
+   for(i; i < 5; i++)
    {
      UnlockingSequence[i] = random(10);
    }
     Stage = Stage +2;
     GameStarting = 0;
     SequenceCounter = 0;
+    stripNumbers.clear();
+    stripNumbers.setPixelColor(0, 0x00FFFF);
+    stripNumbers.setPixelColor(1, 0x00FFFF);
+    stripNumbers.setPixelColor(2, 0x00FFFF);
+    stripNumbers.setPixelColor(3, 0x00FFFF);
+    stripNumbers.show();
     Serial.println(" ");
-    for (int s = 0; s < 5; s++)
+    for (s = 0; s < 5; s++)
+    {
+      Serial.print(UnlockingSequence[s]);
+    }
+    Serial.println(" <-- Unlocking sequence UPDATED");
+  }
+
+ else if(SequenceCounter < 200 && GameStarting == 1)
+  {
+   for(i; i < 5; i++)
+   {
+     UnlockingSequence[i] = random(10);
+   }
+   for(int a = 0; a < 10; a++)
+   {
+     switch (UnlockingSequence[a])
+     {
+       case 2:
+       UnlockingSequence[a] = random(10);
+       break;
+
+       case 8:
+       UnlockingSequence[a] = random(10);
+       break;
+
+       case 9:
+       UnlockingSequence[a] = random(10);
+       break;
+    
+       default:
+       break;
+      }
+    }
+    GameStarting = 0;
+    Serial.println(" ");
+    for (s = 0; s < 5; s++)
     {
       Serial.print(UnlockingSequence[s]);
     }
@@ -617,17 +664,18 @@ void UpdateSequence()
 void GameProgress()
 {
   Serial.println("Pass ");
-  if (LoopDelay > 750)
+  if (LoopDelay > 800 && K == 0)
   {
-    LoopDelay = (LoopDelay - 250); // Timer ticks down at a faster rate 
-    Serial.print("LoopDelay: ");
-    Serial.println(LoopDelay, DEC);
+    //LoopDelay = (LoopDelay - 400); // Timer ticks down at a faster rate 
   }
-  else if (LoopDelay <= 750)
+  else if (LoopDelay <= 675 || K == 1)
   {
     LoopDelay = 1000;
+    K = 0;
   }
-  delay(50);
+  Serial.print("LoopDelay: ");
+  Serial.println(LoopDelay, DEC);
+  delay(30);
 }
 
 void AccelerateTimer()
@@ -637,6 +685,7 @@ void AccelerateTimer()
   {
     MyRegister[0] = 0; 
     LoopDelay = (LoopDelay - 75); // Timer ticks down at a faster rate after failure (wrong input)
+    K = 1;
     Serial.print("LoopDelay: ");
     Serial.println(LoopDelay, DEC);
   }
@@ -645,7 +694,7 @@ void AccelerateTimer()
     LoopDelay = (1000 - LoopSubtract);
     LoopSubtract = (LoopSubtract + 50);
   }
-  delay(50);
+  delay(30);
 }
 
 void DebounceBlue()
@@ -773,11 +822,10 @@ void DebounceWhite()
   WhitePreviousState = WhiteStateNow; 
 }
 
-void LoseTime()
+void LoseTime(int, uint16_t, uint16_t, uint16_t, uint16_t)
 {
-  
-  for (int t = 0; t < 21; t++, counterD--)
-  {   
+  for (Z; Z < 20; Z++, counterD--)
+  {    
     matrix.writeDigitNum(0, (counterA));
     matrix.writeDigitNum(1, (counterB));
     matrix.drawColon(drawDots);
@@ -824,7 +872,7 @@ void LoseTime()
            delay(5000);
           }
     }
-  }  
+  }
 }
 
 void receiveEvent(int) {
@@ -1035,17 +1083,18 @@ void playFtS()
   { 
    if (Start == LOW)
     {
-      UpdateSequence();
       StartButton();
+      UpdateSequence();
+      //SequenceCounter = 220;
     } 
    if (Start == HIGH) 
     {
-     for (counterA = 3, counterB = 0, counterC = 0; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
+     for (counterA, counterB, counterC, counterD; (counterA + counterB + counterC + counterD) >= 0; counterD--, SequenceCounter++) 
      { 
-      ClearLED();
+      //ClearLED();
       UpdateSequence();    
       ProgressIndicator();
-      if (Stage >= 9 || counterA == 0){NumbersIndicator();}
+      if (counterA == 0){NumbersIndicator();}
       ProgressCheck();
       matrix.writeDigitNum(0, (counterA));
       matrix.writeDigitNum(1, (counterB));
@@ -1112,10 +1161,20 @@ void playFtS()
                 if ((counterA != UnlockingSequence[i] && counterB != UnlockingSequence[i] && counterC != UnlockingSequence[i] && counterD != UnlockingSequence[i])
                     && (SwitchPrevious[i] != MyRegister[i]) && MyRegister[i] == 1)     // IF statement for when the switch is flipped at the incorrect time
                   {
+                   if((counterD == 0) || (counterD == 1) || (counterD == 2) || (counterD == 9) || (counterD == 8))
+                   {
+                     Z = 5;
+                     LoseTime(Z, counterA, counterB, counterC, counterD);
+                    }
+                   else if((counterD > 2) && (counterD < 8))
+                   {
+                    Z = 0;
+                    LoseTime(Z, counterA, counterB, counterC, counterD);
+                   }
                    AccelerateTimer();
-                   LoseTime();
                    SwitchPrevious[i] = 1;
                    memset(Progress, 0, sizeof(Progress));
+                   i = 5;
                    break;
                   }
                 if ((counterA == UnlockingSequence[i] || counterB == UnlockingSequence[i] || counterC == UnlockingSequence[i] || counterD == UnlockingSequence[i])
